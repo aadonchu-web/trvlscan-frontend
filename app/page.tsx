@@ -76,55 +76,64 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-[#061834] via-[#0a2450] to-[#041022] text-white">
-      <section className="mx-auto flex w-full max-w-6xl flex-col px-6 pb-16 pt-12 md:px-10 lg:pt-20">
-        <div className="max-w-3xl">
-          <p className="inline-flex rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs uppercase tracking-wide text-blue-100">
-            TRVLscan
-          </p>
-          <h1 className="mt-5 text-4xl font-semibold leading-tight md:text-5xl">
-            Find flights with confidence, speed, and smarter prices.
-          </h1>
-          <p className="mt-4 max-w-2xl text-base text-blue-100/90 md:text-lg">
-            Compare routes, dates, and airlines in a clean booking experience
-            built for modern travelers.
-          </p>
+    <main className="min-h-screen bg-[#F3F6FB] text-[#0B1F3A]">
+      <section
+        className="relative min-h-[540px] w-full bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage:
+            "url('https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1600')",
+        }}
+      >
+        <div className="absolute inset-0 bg-[#071A33]/70" />
+        <div className="relative mx-auto flex w-full max-w-7xl flex-col px-6 pb-36 pt-20 md:px-10 lg:pt-24">
+          <div className="max-w-3xl text-white">
+            <h1 className="text-4xl font-bold leading-tight md:text-6xl">
+              Book Flights with Crypto Worldwide
+            </h1>
+            <p className="mt-5 text-lg text-blue-100 md:text-2xl">
+              Search 600+ airlines. Pay with USDT.
+            </p>
+          </div>
         </div>
+      </section>
 
-        <div className="mt-10 rounded-2xl border border-white/10 bg-white/10 p-6 shadow-2xl backdrop-blur md:p-8">
-          <h2 className="text-xl font-medium">Search flights</h2>
-          <form onSubmit={handleSubmit} className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
+      <section className="relative z-10 mx-auto -mt-20 w-full max-w-7xl px-6 pb-10 md:px-10">
+        <div className="rounded-2xl bg-white p-5 shadow-[0_20px_45px_rgba(12,33,66,0.18)] md:p-6">
+          <form
+            onSubmit={handleSubmit}
+            className="grid grid-cols-1 gap-3 lg:grid-cols-[1fr_1fr_1fr_1fr_auto] lg:items-end"
+          >
             <div className="flex flex-col gap-2">
-              <label htmlFor="origin" className="text-sm text-blue-100">
-                Origin
+              <label htmlFor="origin" className="text-sm font-medium text-[#1C355E]">
+                From
               </label>
               <input
                 id="origin"
                 name="origin"
                 list="airports"
                 required
-                placeholder="e.g. SFO - San Francisco"
-                className="h-12 rounded-lg border border-white/20 bg-[#0b2a58]/70 px-4 text-white placeholder:text-blue-200/70 outline-none ring-offset-1 transition focus:border-blue-300 focus:ring-2 focus:ring-blue-300"
+                placeholder="Dubai (DXB)"
+                className="h-12 rounded-xl border border-[#D6E0ED] bg-white px-4 text-[#0B1F3A] placeholder:text-[#6B7F99] outline-none transition focus:border-[#2563EB] focus:ring-2 focus:ring-[#93C5FD]"
               />
             </div>
 
             <div className="flex flex-col gap-2">
-              <label htmlFor="destination" className="text-sm text-blue-100">
-                Destination
+              <label htmlFor="destination" className="text-sm font-medium text-[#1C355E]">
+                To
               </label>
               <input
                 id="destination"
                 name="destination"
                 list="airports"
                 required
-                placeholder="e.g. LHR - London Heathrow"
-                className="h-12 rounded-lg border border-white/20 bg-[#0b2a58]/70 px-4 text-white placeholder:text-blue-200/70 outline-none ring-offset-1 transition focus:border-blue-300 focus:ring-2 focus:ring-blue-300"
+                placeholder="Bangkok (BKK)"
+                className="h-12 rounded-xl border border-[#D6E0ED] bg-white px-4 text-[#0B1F3A] placeholder:text-[#6B7F99] outline-none transition focus:border-[#2563EB] focus:ring-2 focus:ring-[#93C5FD]"
               />
             </div>
 
             <div className="flex flex-col gap-2">
-              <label htmlFor="departure_date" className="text-sm text-blue-100">
-                Departure date
+              <label htmlFor="departure_date" className="text-sm font-medium text-[#1C355E]">
+                Date
               </label>
               <input
                 id="departure_date"
@@ -132,19 +141,19 @@ export default function Home() {
                 type="date"
                 min={today}
                 required
-                className="h-12 rounded-lg border border-white/20 bg-[#0b2a58]/70 px-4 text-white outline-none ring-offset-1 transition focus:border-blue-300 focus:ring-2 focus:ring-blue-300"
+                className="h-12 rounded-xl border border-[#D6E0ED] bg-white px-4 text-[#0B1F3A] outline-none transition focus:border-[#2563EB] focus:ring-2 focus:ring-[#93C5FD]"
               />
             </div>
 
             <div className="flex flex-col gap-2">
-              <label htmlFor="passengers" className="text-sm text-blue-100">
+              <label htmlFor="passengers" className="text-sm font-medium text-[#1C355E]">
                 Passengers
               </label>
               <select
                 id="passengers"
                 name="passengers"
                 defaultValue="1"
-                className="h-12 rounded-lg border border-white/20 bg-[#0b2a58]/70 px-4 text-white outline-none ring-offset-1 transition focus:border-blue-300 focus:ring-2 focus:ring-blue-300"
+                className="h-12 rounded-xl border border-[#D6E0ED] bg-white px-4 text-[#0B1F3A] outline-none transition focus:border-[#2563EB] focus:ring-2 focus:ring-[#93C5FD]"
               >
                 {Array.from({ length: 9 }, (_, idx) => idx + 1).map((count) => (
                   <option key={count} value={count}>
@@ -157,12 +166,13 @@ export default function Home() {
             <button
               type="submit"
               disabled={isLoading}
-              className="mt-2 h-12 rounded-lg bg-white px-6 text-base font-semibold text-[#072252] transition hover:bg-blue-100 md:col-span-2 md:mt-3"
+              className="h-12 rounded-xl bg-[#2563EB] px-8 text-sm font-bold uppercase tracking-wide text-white transition hover:bg-[#1D4ED8] disabled:cursor-not-allowed disabled:opacity-70"
             >
-              {isLoading ? "Searching..." : "Search flights"}
+              {isLoading ? "Searching..." : "Search"}
             </button>
+
             {error ? (
-              <p className="text-sm text-red-300 md:col-span-2" role="alert">
+              <p className="text-sm text-red-600 lg:col-span-5" role="alert">
                 {error}
               </p>
             ) : null}
@@ -172,6 +182,16 @@ export default function Home() {
               <option key={airport} value={airport} />
             ))}
           </datalist>
+        </div>
+      </section>
+
+      <section className="mx-auto w-full max-w-7xl px-6 pb-16 md:px-10">
+        <div className="rounded-2xl border border-[#DCE6F3] bg-white px-6 py-5 shadow-sm">
+          <div className="grid grid-cols-1 gap-4 text-center text-sm font-semibold text-[#1C355E] md:grid-cols-3 md:text-base">
+            <p>600+ Airlines</p>
+            <p>100+ Countries</p>
+            <p>Pay with USDT</p>
+          </div>
         </div>
       </section>
     </main>

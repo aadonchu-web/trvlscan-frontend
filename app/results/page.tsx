@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createBooking } from "@/lib/api";
 
@@ -72,6 +72,46 @@ function formatDuration(value: string) {
   return [hours, minutes].filter(Boolean).join(" ") || "0m";
 }
 
+function getAirlineInitials(name: string) {
+  const trimmed = name.trim();
+  if (!trimmed || trimmed === "-") {
+    return "FL";
+  }
+
+  return trimmed
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part.charAt(0).toUpperCase())
+    .join("");
+}
+
+function formatDateTabLabel(date: Date) {
+  return date.toLocaleDateString([], {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+  });
+}
+
+function buildDateWindow(baseDateString: string) {
+  const parsedDate = new Date(baseDateString);
+  const baseDate = Number.isNaN(parsedDate.getTime()) ? new Date() : parsedDate;
+  const result: { key: string; label: string; isoDate: string }[] = [];
+
+  for (let offset = -2; offset <= 2; offset += 1) {
+    const date = new Date(baseDate);
+    date.setDate(baseDate.getDate() + offset);
+    const isoDate = date.toISOString().slice(0, 10);
+    result.push({
+      key: `${isoDate}-${offset}`,
+      label: formatDateTabLabel(date),
+      isoDate,
+    });
+  }
+
+  return result;
+}
+
 export default function ResultsPage() {
   const router = useRouter();
   const [offers, setOffers] = useState<OfferRecord[]>([]);
@@ -85,6 +125,7 @@ export default function ResultsPage() {
   const [isRateLoading, setIsRateLoading] = useState(true);
   const [bookingLoadingOfferId, setBookingLoadingOfferId] = useState<string | null>(null);
   const [bookingErrorByOfferId, setBookingErrorByOfferId] = useState<Record<string, string>>({});
+  const [selectedDate, setSelectedDate] = useState<string>("");
 
   useEffect(() => {
     const rawOffers = sessionStorage.getItem("searchOffers");
@@ -113,11 +154,18 @@ export default function ResultsPage() {
           departure_date: parsedParams.departure_date ?? "-",
           passengers: Number(parsedParams.passengers ?? 1),
         });
+        setSelectedDate(parsedParams.departure_date ?? "");
       } catch {
         setSearchInfo(null);
       }
     }
   }, []);
+
+  const dateOptions = useMemo(
+    () => buildDateWindow(selectedDate || searchInfo?.departure_date || ""),
+    [searchInfo?.departure_date, selectedDate],
+  );
+  const activeDate = selectedDate || dateOptions[2]?.isoDate || "";
 
   const handleSelect = async (offer: OfferRecord) => {
     const offerId = readValue(offer, ["id"], "");
@@ -209,20 +257,44 @@ export default function ResultsPage() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-[#061834] via-[#0a2450] to-[#041022] px-6 py-12 text-white md:px-10">
-      <section className="mx-auto w-full max-w-6xl rounded-2xl border border-white/10 bg-white/10 p-8 backdrop-blur">
-        <h1 className="text-3xl font-semibold">Flight results</h1>
+    <main className="min-h-screen bg-slate-100 px-4 py-10 text-slate-900 md:px-8">
+      <section className="mx-auto w-full max-w-6xl rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
+        <h1 className="text-3xl font-semibold text-slate-900">Flight results</h1>
         {searchInfo && (
-          <p className="mt-3 text-blue-100/90">
+          <p className="mt-3 text-sm text-slate-600">
             {searchInfo.origin} to {searchInfo.destination} on {searchInfo.departure_date} for{" "}
             {searchInfo.passengers} passenger(s)
           </p>
         )}
 
+        <div className="mt-6 overflow-x-auto rounded-xl border border-slate-200 bg-slate-50 p-2">
+          <div className="flex min-w-max gap-2">
+            {dateOptions.map((dateOption) => {
+              const isSelected = dateOption.isoDate === activeDate;
+              return (
+                <button
+                  key={dateOption.key}
+                  type="button"
+                  onClick={() => {
+                    setSelectedDate(dateOption.isoDate);
+                  }}
+                  className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+                    isSelected
+                      ? "bg-[#0f2d66] text-white shadow-sm"
+                      : "bg-white text-slate-600 hover:bg-slate-100"
+                  }`}
+                >
+                  {dateOption.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {offers.length === 0 ? (
-          <p className="mt-6 text-blue-100/90">No flights found</p>
+          <p className="mt-6 text-slate-600">No flights found</p>
         ) : (
-          <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <div className="mt-6 space-y-4">
             {offers.map((offer, index) => {
               const airline = readValue(offer, [
                 "airline.name",
@@ -257,44 +329,78 @@ export default function ResultsPage() {
                 gbpUsdRate !== null ? (totalAmount * gbpUsdRate * 1.025).toFixed(2) : null;
               const bookingError = bookingErrorByOfferId[offerId];
               const isBooking = bookingLoadingOfferId === offerId;
+              const numericStops = Number(stops);
+              const stopLabel =
+                Number.isFinite(numericStops) && numericStops <= 0
+                  ? "Non-stop"
+                  : `${stops} ${numericStops === 1 ? "stop" : "stops"}`;
+              const stopBadgeClasses =
+                Number.isFinite(numericStops) && numericStops <= 0
+                  ? "bg-green-100 text-green-700"
+                  : "bg-orange-100 text-orange-700";
+              const airlineInitials = getAirlineInitials(airline);
 
               return (
                 <article
                   key={offerId || `${airline}-${departureTime}-${arrivalTime}-${index}`}
-                  className="rounded-xl border border-white/10 bg-[#0b2a58]/60 p-5"
+                  className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md"
                 >
-                  <p className="text-lg font-semibold">{airline}</p>
-                  <p className="mt-1 text-sm text-blue-100/90">
-                    {formatTime(departureTime)} - {formatTime(arrivalTime)}
-                  </p>
-                  <div className="mt-4 grid grid-cols-2 gap-2 text-sm text-blue-100/95">
-                    <p>Duration: {formatDuration(duration)}</p>
-                    <p>Stops: {stops}</p>
-                    <p className="col-span-2 text-lg font-semibold text-cyan-300">
-                      {isRateLoading
-                        ? "Calculating..."
-                        : usdtEstimate
-                          ? `≈ ${usdtEstimate} USDT`
-                          : `${totalAmount.toFixed(2)} ${totalCurrency}`}
-                    </p>
-                    <p className="col-span-2 text-sm text-blue-100/75">
-                      {isRateLoading || usdtEstimate
-                        ? `${totalAmount.toFixed(2)} ${totalCurrency}`
-                        : `${totalAmount.toFixed(2)} ${totalCurrency} (USD rate unavailable)`}
-                    </p>
+                  <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                    <div className="flex min-w-0 items-center gap-3 md:w-[24%]">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-200 text-sm font-bold text-[#0f2d66]">
+                        {airlineInitials}
+                      </div>
+                      <p className="truncate text-base font-semibold text-slate-800">{airline}</p>
+                    </div>
+
+                    <div className="md:w-[46%]">
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-3xl font-bold text-slate-900">{formatTime(departureTime)}</p>
+                        <div className="flex min-w-[110px] items-center gap-2 text-slate-400">
+                          <div className="h-px flex-1 bg-slate-300" />
+                          <span className="text-xs font-medium text-slate-500">{stopLabel}</span>
+                          <div className="h-px flex-1 bg-slate-300" />
+                        </div>
+                        <p className="text-3xl font-bold text-slate-900">{formatTime(arrivalTime)}</p>
+                      </div>
+                      <p className="mt-1 text-sm text-slate-500">
+                        {searchInfo?.origin ?? "-"} to {searchInfo?.destination ?? "-"}
+                      </p>
+                      <div className="mt-3 flex items-center gap-3">
+                        <p className="text-sm font-medium text-slate-600">{formatDuration(duration)}</p>
+                        <span
+                          className={`rounded-full px-2.5 py-1 text-xs font-semibold ${stopBadgeClasses}`}
+                        >
+                          {stopLabel}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="md:w-[20%] md:text-right">
+                      <p className="text-3xl font-bold text-[#0f2d66]">
+                        {isRateLoading
+                          ? "..."
+                          : usdtEstimate
+                            ? `${usdtEstimate} USDT`
+                            : `${totalAmount.toFixed(2)} USDT`}
+                      </p>
+                      <p className="mt-1 text-sm text-slate-500">
+                        {totalAmount.toFixed(2)} {totalCurrency}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          void handleSelect(offer);
+                        }}
+                        disabled={isBooking}
+                        className="mt-3 h-10 rounded-lg bg-[#0f2d66] px-5 text-sm font-semibold text-white transition hover:bg-[#12387d] disabled:cursor-not-allowed disabled:opacity-70"
+                      >
+                        {isBooking ? "Booking..." : "Select"}
+                      </button>
+                    </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      void handleSelect(offer);
-                    }}
-                    disabled={isBooking}
-                    className="mt-5 h-10 rounded-lg bg-white px-4 text-sm font-semibold text-[#072252] transition hover:bg-blue-100"
-                  >
-                    {isBooking ? "Booking..." : "Select"}
-                  </button>
                   {bookingError ? (
-                    <p className="mt-3 text-sm text-red-300" role="alert">
+                    <p className="mt-3 text-sm text-red-600" role="alert">
                       {bookingError}
                     </p>
                   ) : null}
