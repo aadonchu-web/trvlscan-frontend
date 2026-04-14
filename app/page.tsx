@@ -14,6 +14,9 @@ export default function Home() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [tripType, setTripType] = useState<"oneWay" | "roundTrip">("oneWay");
+  const [originInput, setOriginInput] = useState("");
+  const [destinationInput, setDestinationInput] = useState("");
   const airports = [
     "SFO - San Francisco International",
     "LAX - Los Angeles International",
@@ -99,22 +102,69 @@ export default function Home() {
 
       <section className="relative z-10 mx-auto -mt-20 w-full max-w-7xl px-6 pb-10 md:px-10">
         <div className="rounded-2xl bg-white p-5 shadow-[0_20px_45px_rgba(12,33,66,0.18)] md:p-6">
+          <div className="mb-4 flex items-center gap-6">
+            <label className="inline-flex items-center gap-2 text-sm font-medium text-[#1C355E]">
+              <input
+                type="radio"
+                name="tripType"
+                value="roundTrip"
+                checked={tripType === "roundTrip"}
+                onChange={() => {
+                  setTripType("roundTrip");
+                }}
+                className="h-4 w-4 accent-[#2563EB]"
+              />
+              Round trip
+            </label>
+            <label className="inline-flex items-center gap-2 text-sm font-medium text-[#1C355E]">
+              <input
+                type="radio"
+                name="tripType"
+                value="oneWay"
+                checked={tripType === "oneWay"}
+                onChange={() => {
+                  setTripType("oneWay");
+                }}
+                className="h-4 w-4 accent-[#2563EB]"
+              />
+              One way
+            </label>
+          </div>
+
           <form
             onSubmit={handleSubmit}
-            className="grid grid-cols-1 gap-3 lg:grid-cols-[1fr_1fr_1fr_1fr_auto] lg:items-end"
+            className="grid grid-cols-1 gap-3 lg:grid-cols-[1fr_auto_1fr_1fr_1fr_1fr_auto] lg:items-end"
           >
             <div className="flex flex-col gap-2">
               <label htmlFor="origin" className="text-sm font-medium text-[#1C355E]">
-                From
+                ✈ From
               </label>
               <input
                 id="origin"
                 name="origin"
                 list="airports"
                 required
-                placeholder="Dubai (DXB)"
+                placeholder="From"
+                value={originInput}
+                onChange={(event) => {
+                  setOriginInput(event.target.value);
+                }}
                 className="h-12 rounded-xl border border-[#D6E0ED] bg-white px-4 text-[#0B1F3A] placeholder:text-[#6B7F99] outline-none transition focus:border-[#2563EB] focus:ring-2 focus:ring-[#93C5FD]"
               />
+            </div>
+
+            <div className="flex justify-center lg:pb-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setOriginInput(destinationInput);
+                  setDestinationInput(originInput);
+                }}
+                className="h-12 w-12 rounded-xl border border-[#D6E0ED] text-xl text-[#1C355E] transition hover:border-[#2563EB] hover:text-[#2563EB]"
+                aria-label="Swap origin and destination"
+              >
+                ⇄
+              </button>
             </div>
 
             <div className="flex flex-col gap-2">
@@ -126,14 +176,18 @@ export default function Home() {
                 name="destination"
                 list="airports"
                 required
-                placeholder="Bangkok (BKK)"
+                placeholder="To"
+                value={destinationInput}
+                onChange={(event) => {
+                  setDestinationInput(event.target.value);
+                }}
                 className="h-12 rounded-xl border border-[#D6E0ED] bg-white px-4 text-[#0B1F3A] placeholder:text-[#6B7F99] outline-none transition focus:border-[#2563EB] focus:ring-2 focus:ring-[#93C5FD]"
               />
             </div>
 
             <div className="flex flex-col gap-2">
               <label htmlFor="departure_date" className="text-sm font-medium text-[#1C355E]">
-                Date
+                📅 Departure date
               </label>
               <input
                 id="departure_date"
@@ -141,13 +195,31 @@ export default function Home() {
                 type="date"
                 min={today}
                 required
+                defaultValue={today}
                 className="h-12 rounded-xl border border-[#D6E0ED] bg-white px-4 text-[#0B1F3A] outline-none transition focus:border-[#2563EB] focus:ring-2 focus:ring-[#93C5FD]"
               />
             </div>
 
+            {tripType === "roundTrip" ? (
+              <div className="flex flex-col gap-2">
+                <label htmlFor="return_date" className="text-sm font-medium text-[#1C355E]">
+                  📅 Return date
+                </label>
+                <input
+                  id="return_date"
+                  name="return_date"
+                  type="date"
+                  min={today}
+                  className="h-12 rounded-xl border border-[#D6E0ED] bg-white px-4 text-[#0B1F3A] outline-none transition focus:border-[#2563EB] focus:ring-2 focus:ring-[#93C5FD]"
+                />
+              </div>
+            ) : (
+              <div className="hidden lg:block" />
+            )}
+
             <div className="flex flex-col gap-2">
               <label htmlFor="passengers" className="text-sm font-medium text-[#1C355E]">
-                Passengers
+                👤 Passengers
               </label>
               <select
                 id="passengers"
@@ -172,7 +244,7 @@ export default function Home() {
             </button>
 
             {error ? (
-              <p className="text-sm text-red-600 lg:col-span-5" role="alert">
+              <p className="text-sm text-red-600 lg:col-span-7" role="alert">
                 {error}
               </p>
             ) : null}

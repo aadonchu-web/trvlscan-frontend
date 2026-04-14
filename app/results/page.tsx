@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createBooking } from "@/lib/api";
 
 type OfferRecord = Record<string, unknown>;
 
@@ -123,8 +122,7 @@ export default function ResultsPage() {
   } | null>(null);
   const [gbpUsdRate, setGbpUsdRate] = useState<number | null>(null);
   const [isRateLoading, setIsRateLoading] = useState(true);
-  const [bookingLoadingOfferId, setBookingLoadingOfferId] = useState<string | null>(null);
-  const [bookingErrorByOfferId, setBookingErrorByOfferId] = useState<Record<string, string>>({});
+  const [selectingOfferId, setSelectingOfferId] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>("");
 
   useEffect(() => {
@@ -167,43 +165,15 @@ export default function ResultsPage() {
   );
   const activeDate = selectedDate || dateOptions[2]?.isoDate || "";
 
-  const handleSelect = async (offer: OfferRecord) => {
+  const handleSelect = (offer: OfferRecord) => {
     const offerId = readValue(offer, ["id"], "");
     if (!offerId) {
       return;
     }
 
-    setBookingLoadingOfferId(offerId);
-    setBookingErrorByOfferId((prev) => ({ ...prev, [offerId]: "" }));
-
-    try {
-      const booking = (await createBooking({
-        offerId,
-        passengerName: "Test User",
-        passengerEmail: "test@test.com",
-        passengerDob: "1990-01-15",
-      })) as {
-        booking_id: string;
-        usd_amount?: number;
-        usdt_amount?: number;
-        expires_at?: string;
-      };
-
-      const payload = {
-        ...booking,
-        selected_offer: offer,
-        search_params: searchInfo,
-      };
-      sessionStorage.setItem("currentBooking", JSON.stringify(payload));
-      router.push(`/booking/${booking.booking_id}`);
-    } catch (error) {
-      setBookingErrorByOfferId((prev) => ({
-        ...prev,
-        [offerId]: error instanceof Error ? error.message : "Failed to create booking",
-      }));
-    } finally {
-      setBookingLoadingOfferId(null);
-    }
+    setSelectingOfferId(offerId);
+    sessionStorage.setItem("selectedOffer", JSON.stringify(offer));
+    router.push("/passenger");
   };
 
   useEffect(() => {
@@ -327,8 +297,7 @@ export default function ResultsPage() {
               const offerId = readValue(offer, ["id"], "");
               const usdtEstimate =
                 gbpUsdRate !== null ? (totalAmount * gbpUsdRate * 1.025).toFixed(2) : null;
-              const bookingError = bookingErrorByOfferId[offerId];
-              const isBooking = bookingLoadingOfferId === offerId;
+              const isSelecting = selectingOfferId === offerId;
               const numericStops = Number(stops);
               const stopLabel =
                 Number.isFinite(numericStops) && numericStops <= 0
@@ -390,20 +359,15 @@ export default function ResultsPage() {
                       <button
                         type="button"
                         onClick={() => {
-                          void handleSelect(offer);
+                          handleSelect(offer);
                         }}
-                        disabled={isBooking}
+                        disabled={isSelecting}
                         className="mt-3 h-10 rounded-lg bg-[#0f2d66] px-5 text-sm font-semibold text-white transition hover:bg-[#12387d] disabled:cursor-not-allowed disabled:opacity-70"
                       >
-                        {isBooking ? "Booking..." : "Select"}
+                        {isSelecting ? "Continuing..." : "Select"}
                       </button>
                     </div>
                   </div>
-                  {bookingError ? (
-                    <p className="mt-3 text-sm text-red-600" role="alert">
-                      {bookingError}
-                    </p>
-                  ) : null}
                 </article>
               );
             })}
