@@ -119,6 +119,7 @@ export default function BookingPage({ params }: BookingPageProps) {
       setIsCreatingPayment(true);
       setError(null);
       try {
+        if (!booking) return;
         const response = (await createPayment(booking.booking_id)) as PaymentData;
         if (!isCancelled) {
           setPayment(response);
