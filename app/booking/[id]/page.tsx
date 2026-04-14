@@ -161,6 +161,7 @@ export default function BookingPage({ params }: BookingPageProps) {
 
     async function pollStatus() {
       try {
+        if (!booking) return;
         const response = (await getPaymentStatus(booking.booking_id)) as PaymentStatusResponse;
         if (isCancelled) {
           return;
