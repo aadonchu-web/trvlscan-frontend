@@ -232,145 +232,196 @@ export default function PassengerPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#F4F7FC] px-4 py-8 text-[#0B1F3A] md:px-8 md:py-10">
-      <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
-        <section className="rounded-2xl border border-[#DCE6F3] bg-white p-5 shadow-sm md:p-7">
-          <h1 className="text-2xl font-bold text-[#0F2748]">Passenger Details</h1>
-          <p className="mt-5 text-base font-semibold text-[#1D3657]">Traveler 1: Adult</p>
-
-          <form onSubmit={handleSubmit} className="mt-5 space-y-4">
-            <div>
-              <p className="text-sm font-medium text-[#1C355E]">Gender</p>
-              <div className="mt-2 flex items-center gap-6">
-                <label className="inline-flex items-center gap-2 text-sm text-[#1C355E]">
-                  <input
-                    type="radio"
-                    name="gender"
-                    value="male"
-                    defaultChecked
-                    className="h-4 w-4 accent-[#2563EB]"
-                  />
-                  Male
-                </label>
-                <label className="inline-flex items-center gap-2 text-sm text-[#1C355E]">
-                  <input
-                    type="radio"
-                    name="gender"
-                    value="female"
-                    className="h-4 w-4 accent-[#2563EB]"
-                  />
-                  Female
-                </label>
+    <main className="min-h-screen bg-[#F0F4F9] px-4 py-8 text-[#0B1F3A]">
+      <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 lg:flex-row">
+        <div className="flex-1">
+          <div className="mb-4">
+            <div className="flex items-center gap-2 text-xs text-slate-500">
+              <div className="flex items-center gap-2">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#2563EB] text-[10px] font-semibold text-white">
+                  1
+                </span>
+                <span className="text-[#2563EB]">Search</span>
+              </div>
+              <div className="h-px flex-1 bg-[#2563EB]" />
+              <div className="flex items-center gap-2">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#2563EB] text-[10px] font-semibold text-white">
+                  2
+                </span>
+                <span className="font-semibold text-[#2563EB]">Passenger Details</span>
+              </div>
+              <div className="h-px flex-1 bg-slate-200" />
+              <div className="flex items-center gap-2">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-200 text-[10px] font-semibold text-slate-500">
+                  3
+                </span>
+                <span>Payment</span>
               </div>
             </div>
-
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <div className="flex flex-col gap-2">
-                <label htmlFor="firstName" className="text-sm font-medium text-[#1C355E]">
-                  First name*
-                </label>
-                <input
-                  id="firstName"
-                  name="firstName"
-                  required
-                  className="h-11 rounded-xl border border-[#D6E0ED] px-4 outline-none transition focus:border-[#2563EB] focus:ring-2 focus:ring-[#93C5FD]"
-                />
-              </div>
-              <div className="flex flex-col gap-2">
-                <label htmlFor="lastName" className="text-sm font-medium text-[#1C355E]">
-                  Last name*
-                </label>
-                <input
-                  id="lastName"
-                  name="lastName"
-                  required
-                  className="h-11 rounded-xl border border-[#D6E0ED] px-4 outline-none transition focus:border-[#2563EB] focus:ring-2 focus:ring-[#93C5FD]"
-                />
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <label htmlFor="dateOfBirth" className="text-sm font-medium text-[#1C355E]">
-                Date of birth*
-              </label>
-              <input
-                id="dateOfBirth"
-                name="dateOfBirth"
-                type="date"
-                required
-                className="h-11 rounded-xl border border-[#D6E0ED] px-4 outline-none transition focus:border-[#2563EB] focus:ring-2 focus:ring-[#93C5FD]"
-              />
-              <p className="text-xs text-slate-500">Format: DD/MM/YYYY</p>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <label htmlFor="email" className="text-sm font-medium text-[#1C355E]">
-                Email*
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                required
-                className="h-11 rounded-xl border border-[#D6E0ED] px-4 outline-none transition focus:border-[#2563EB] focus:ring-2 focus:ring-[#93C5FD]"
-              />
-              <p className="text-xs text-slate-500">
-                Booking confirmation will be sent to this email
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <div className="flex flex-col gap-2">
-                <label htmlFor="phone" className="text-sm font-medium text-[#1C355E]">
-                  Phone number*
-                </label>
-                <input
-                  id="phone"
-                  name="phone"
-                  required
-                  className="h-11 rounded-xl border border-[#D6E0ED] px-4 outline-none transition focus:border-[#2563EB] focus:ring-2 focus:ring-[#93C5FD]"
-                />
-              </div>
-              <div className="flex flex-col gap-2">
-                <label htmlFor="nationality" className="text-sm font-medium text-[#1C355E]">
-                  Nationality*
-                </label>
-                <input
-                  id="nationality"
-                  name="nationality"
-                  required
-                  className="h-11 rounded-xl border border-[#D6E0ED] px-4 outline-none transition focus:border-[#2563EB] focus:ring-2 focus:ring-[#93C5FD]"
-                />
-              </div>
-            </div>
-
-            {submitError ? (
-              <p className="text-sm text-red-600" role="alert">
-                {submitError}
-              </p>
-            ) : null}
-
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="mt-2 h-12 w-full rounded-xl bg-[#0F2748] px-6 text-sm font-semibold text-white transition hover:bg-[#13335e] disabled:cursor-not-allowed disabled:opacity-70 md:w-auto"
-            >
-              {isSubmitting ? "Processing..." : "Continue to Payment"}
-            </button>
-          </form>
-        </section>
-
-        <aside className="h-fit rounded-2xl border border-[#DCE6F3] bg-white p-5 shadow-sm md:p-6">
-          <h2 className="text-lg font-bold text-[#0F2748]">Booking Summary</h2>
-          <div className="mt-4 space-y-3 text-sm text-[#334E73]">
-            <p className="text-base font-semibold text-[#0F2748]">{summary.route}</p>
-            <p>{summary.dateTime}</p>
-            <p>{summary.durationStops}</p>
           </div>
 
-          <div className="mt-6 border-t border-[#E3EBF6] pt-4">
-            <p className="text-3xl font-bold text-emerald-600">{summary.usdtPrice}</p>
-            <p className="mt-1 text-sm text-slate-500">{summary.fiatPrice}</p>
+          <section className="rounded-2xl border border-[#E2EAF4] bg-white p-6">
+            <h1 className="text-lg font-semibold text-[#0B1F3A]">Passenger Details</h1>
+            <p className="mt-0.5 text-sm text-slate-400">Traveler 1 · Adult</p>
+
+            <form onSubmit={handleSubmit} className="mt-5 space-y-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <label className="cursor-pointer">
+                    <input type="radio" name="gender" value="male" defaultChecked className="peer sr-only" />
+                    <span className="inline-flex rounded-xl border border-[#E2EAF4] px-5 py-2 text-sm text-slate-500 transition peer-checked:border-[#2563EB] peer-checked:bg-[#EEF4FF] peer-checked:text-[#2563EB]">
+                      Male
+                    </span>
+                  </label>
+                  <label className="cursor-pointer">
+                    <input type="radio" name="gender" value="female" className="peer sr-only" />
+                    <span className="inline-flex rounded-xl border border-[#E2EAF4] px-5 py-2 text-sm text-slate-500 transition peer-checked:border-[#2563EB] peer-checked:bg-[#EEF4FF] peer-checked:text-[#2563EB]">
+                      Female
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                <div>
+                  <label
+                    htmlFor="firstName"
+                    className="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500"
+                  >
+                    First name*
+                  </label>
+                  <input
+                    id="firstName"
+                    name="firstName"
+                    required
+                    className="h-11 w-full rounded-xl border border-[#E2EAF4] px-4 text-sm outline-none transition focus:border-[#2563EB] focus:ring-2 focus:ring-blue-100"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="lastName"
+                    className="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500"
+                  >
+                    Last name*
+                  </label>
+                  <input
+                    id="lastName"
+                    name="lastName"
+                    required
+                    className="h-11 w-full rounded-xl border border-[#E2EAF4] px-4 text-sm outline-none transition focus:border-[#2563EB] focus:ring-2 focus:ring-blue-100"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="dateOfBirth"
+                  className="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500"
+                >
+                  Date of birth*
+                </label>
+                <input
+                  id="dateOfBirth"
+                  name="dateOfBirth"
+                  type="date"
+                  required
+                  className="h-11 w-full rounded-xl border border-[#E2EAF4] px-4 text-sm outline-none transition focus:border-[#2563EB] focus:ring-2 focus:ring-blue-100"
+                />
+                <p className="mt-1 text-xs text-slate-400">As shown on passport</p>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="email"
+                  className="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500"
+                >
+                  Email*
+                </label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  required
+                  className="h-11 w-full rounded-xl border border-[#E2EAF4] px-4 text-sm outline-none transition focus:border-[#2563EB] focus:ring-2 focus:ring-blue-100"
+                />
+                <p className="mt-1 text-xs text-slate-400">Booking confirmation sent here</p>
+              </div>
+
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                <div>
+                  <label
+                    htmlFor="phone"
+                    className="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500"
+                  >
+                    Phone*
+                  </label>
+                  <input
+                    id="phone"
+                    name="phone"
+                    required
+                    className="h-11 w-full rounded-xl border border-[#E2EAF4] px-4 text-sm outline-none transition focus:border-[#2563EB] focus:ring-2 focus:ring-blue-100"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="nationality"
+                    className="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500"
+                  >
+                    Nationality*
+                  </label>
+                  <input
+                    id="nationality"
+                    name="nationality"
+                    required
+                    className="h-11 w-full rounded-xl border border-[#E2EAF4] px-4 text-sm outline-none transition focus:border-[#2563EB] focus:ring-2 focus:ring-blue-100"
+                  />
+                </div>
+              </div>
+
+              {submitError ? (
+                <p className="text-sm text-red-600" role="alert">
+                  {submitError}
+                </p>
+              ) : null}
+
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="h-12 w-full rounded-xl bg-[#2563EB] text-sm font-semibold text-white transition hover:bg-[#1D4ED8] disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                {isSubmitting ? "Processing..." : "Continue to Payment →"}
+              </button>
+            </form>
+          </section>
+        </div>
+
+        <aside className="h-fit w-full overflow-hidden rounded-2xl border border-[#E2EAF4] bg-white lg:sticky lg:top-6 lg:w-72">
+          <div className="bg-[#0B1F3A] px-5 py-4 text-white">
+            <p className="text-xs uppercase tracking-wider opacity-60">Flight Summary</p>
+            <p className="mt-1 text-xl font-bold">{summary.route.replace("->", "→")}</p>
+          </div>
+
+          <div className="space-y-4 px-5 py-4">
+            <p className="flex items-center gap-2 text-sm text-slate-600">
+              <span aria-hidden>📅</span>
+              <span>{summary.dateTime}</span>
+            </p>
+            <p className="flex items-center gap-2 text-sm text-slate-600">
+              <span aria-hidden>🕒</span>
+              <span>{summary.durationStops}</span>
+            </p>
+
+            <div className="border-t border-[#F0F4F9]" />
+
+            <div>
+              <p className="text-xs uppercase tracking-wide text-slate-400">Total to pay</p>
+              <p className="text-2xl font-bold text-[#2563EB]">{summary.usdtPrice}</p>
+              <p className="mt-0.5 text-sm text-slate-400">{summary.fiatPrice}</p>
+            </div>
+
+            <div className="rounded-xl border border-amber-100 bg-amber-50 px-4 py-3">
+              <p className="text-xs text-amber-700">Price guaranteed for 12 min after booking</p>
+            </div>
           </div>
         </aside>
       </div>
