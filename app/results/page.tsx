@@ -61,14 +61,17 @@ function formatTime(value: string) {
 }
 
 function formatDuration(value: string) {
-  const match = /^PT(?:(\d+)H)?(?:(\d+)M)?$/i.exec(value.trim());
-  if (!match) {
-    return value;
-  }
-
-  const hours = match[1] ? `${match[1]}h` : "";
-  const minutes = match[2] ? `${match[2]}m` : "";
-  return [hours, minutes].filter(Boolean).join(" ") || "0m";
+  if (!value) return "-";
+  const match = /^P(?:(\d+)D)?T(?:(\d+)H)?(?:(\d+)M)?$/i.exec(value.trim());
+  if (!match) return value;
+  const days = parseInt(match[1] ?? "0");
+  const hours = parseInt(match[2] ?? "0");
+  const minutes = parseInt(match[3] ?? "0");
+  const totalHours = days * 24 + hours;
+  const parts = [];
+  if (totalHours > 0) parts.push(`${totalHours}h`);
+  if (minutes > 0) parts.push(`${minutes}m`);
+  return parts.join(" ") || "0m";
 }
 
 function getAirlineInitials(name: string) {
@@ -157,6 +160,9 @@ export default function ResultsPage() {
   const [departureHourLimit, setDepartureHourLimit] = useState(24);
   const [maxDurationHours, setMaxDurationHours] = useState(1);
   const [sortBy, setSortBy] = useState<"best" | "shortest" | "departure" | "arrival">("best");
+  const [showMobilePanel, setShowMobilePanel] = useState<"sort" | "filter" | null>(null);
+  const [expandedOffer, setExpandedOffer] = useState<string | null>(null);
+  const [filterMaxArr, setFilterMaxArr] = useState(24);
 
   useEffect(() => {
     const rawOffers = sessionStorage.getItem("searchOffers");
@@ -401,6 +407,16 @@ export default function ResultsPage() {
       if (item.departureHour > departureHourLimit) {
         return false;
       }
+      const arrHour = (() => {
+        const arr = readValue(item.offer, ["arrival_time", "arrival", "outbound.arrival_time"]);
+        const parsedDate = new Date(arr);
+        return Number.isNaN(parsedDate.getTime())
+          ? 0
+          : parsedDate.getHours() + parsedDate.getMinutes() / 60;
+      })();
+      if (arrHour > filterMaxArr) {
+        return false;
+      }
       if (item.durationHours > maxDurationHours) {
         return false;
       }
@@ -412,6 +428,7 @@ export default function ResultsPage() {
     maxDurationHours,
     maxPriceFilter,
     normalizedOffers,
+    filterMaxArr,
     selectedAirlines,
     selectedStops,
   ]);
@@ -467,6 +484,9 @@ export default function ResultsPage() {
     sessionStorage.setItem("selectedOffer", JSON.stringify(offer));
     router.push("/passenger");
   };
+
+  const minPriceForStop = (stop: number) => stopMinPriceMap.get(stop);
+  const minPriceForAirline = (airline: string) => airlineMinPriceMap.get(airline);
 
   useEffect(() => {
     const from = "GBP";
@@ -594,8 +614,8 @@ export default function ResultsPage() {
           </div>
         </div>
 
-        <div className="grid gap-5 lg:grid-cols-[14rem,minmax(0,1fr)]">
-          <aside className="h-fit rounded-2xl border border-[#E2EAF4] bg-white p-4 lg:sticky lg:top-6">
+        <div className="flex items-start gap-4">
+          <aside className="hidden w-56 flex-shrink-0 rounded-2xl border border-[#E2EAF4] bg-white p-4 lg:sticky lg:top-6 lg:block">
             <div>
               <p className="text-xs font-semibold tracking-wide text-slate-500">STOPS</p>
               <div className="mt-2 space-y-2">
@@ -703,7 +723,7 @@ export default function ResultsPage() {
             </div>
           </aside>
 
-          <section>
+          <section className="min-w-0 flex-1">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
               <div className="flex flex-wrap gap-2">
                 {sortOptions.map((option) => {
@@ -744,35 +764,62 @@ export default function ResultsPage() {
                   const isCheapest =
                     cheapestVisiblePrice !== null && Math.abs(item.usdtPrice - cheapestVisiblePrice) < 0.01;
                   const hasNonstop = item.stops === 0;
+                  const numericStops = item.stops;
+                  const stopText = numericStops === 0 ? "Nonstop" : `${numericStops} stop${numericStops > 1 ? "s" : ""}`;
+                  const segments = (() => {
+                    const offerData = item.offer as Record<string, unknown>;
+                    const slices = offerData?.slices as unknown[];
+                    if (
+                      Array.isArray(slices) &&
+                      slices[0] &&
+                      typeof slices[0] === "object" &&
+                      Array.isArray((slices[0] as Record<string, unknown>).segments)
+                    ) {
+                      return (slices[0] as Record<string, unknown>).segments as Record<string, unknown>[];
+                    }
+                    const segs = offerData?.segments;
+                    if (Array.isArray(segs)) {
+                      return segs as Record<string, unknown>[];
+                    }
+                    return null;
+                  })();
+                  const departureDate = new Date(item.departureTime).toLocaleDateString([], {
+                    weekday: "short",
+                    day: "numeric",
+                    month: "short",
+                  });
 
                   return (
                     <article
                       key={item.key}
-                      className="rounded-2xl border border-[#E2EAF4] bg-white p-4 transition hover:border-slate-300"
+                      className="rounded-2xl border border-[#E2EAF4] bg-white p-4"
                     >
-                      <div className="mb-3 flex flex-wrap gap-2">
-                        {isCheapest && (
-                          <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700">
-                            Cheapest
-                          </span>
-                        )}
-                        {hasNonstop && (
-                          <span className="rounded-full bg-blue-100 px-2.5 py-1 text-xs font-semibold text-[#2563EB]">
-                            Nonstop
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                        <div className="flex items-center gap-3 lg:w-[16%]">
-                          <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#E2EAF4] bg-white">
+                      {(isCheapest || hasNonstop) && (
+                        <div className="mb-2 flex gap-2">
+                          {isCheapest && (
+                            <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+                              Cheapest
+                            </span>
+                          )}
+                          {hasNonstop && (
+                            <span className="rounded-full bg-blue-100 px-2.5 py-1 text-xs font-semibold text-[#2563EB]">
+                              Nonstop
+                            </span>
+                          )}
+                        </div>
+                      )}
+
+                      <div className="mb-3 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className="airline-logo-wrap flex h-8 w-8 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#E2EAF4] bg-white">
                             {logoUrl ? (
                               <>
                                 <img
                                   src={logoUrl}
                                   alt={item.airline}
-                                  width={28}
-                                  height={28}
-                                  className="h-7 w-7 object-contain"
+                                  width={22}
+                                  height={22}
+                                  className="object-contain"
                                   onError={(event) => {
                                     event.currentTarget.style.display = "none";
                                     const fallback = event.currentTarget.nextElementSibling as HTMLElement | null;
@@ -781,66 +828,335 @@ export default function ResultsPage() {
                                     }
                                   }}
                                 />
-                                <span className="hidden h-7 w-7 items-center justify-center rounded-full bg-[#DBEAFE] text-[10px] font-semibold text-[#2563EB]">
+                                <span className="hidden h-6 w-6 items-center justify-center rounded-full bg-[#DBEAFE] text-[10px] font-semibold text-[#2563EB]">
                                   {airlineInitials}
                                 </span>
                               </>
                             ) : (
-                              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#DBEAFE] text-[10px] font-semibold text-[#2563EB]">
+                              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#DBEAFE] text-[10px] font-semibold text-[#2563EB]">
                                 {airlineInitials}
                               </span>
                             )}
                           </div>
-                          <p className="truncate text-sm font-semibold text-[#0B1F3A]">{item.airline}</p>
+                          <span className="text-sm font-medium text-[#0B1F3A]">{item.airline}</span>
                         </div>
+                      </div>
 
-                        <div className="lg:w-[54%]">
-                          <div className="flex items-center justify-between gap-3">
-                            <p className="text-2xl font-bold text-[#0B1F3A]">{formatTime(item.departureTime)}</p>
-                            <div className="flex min-w-[130px] items-center gap-2 text-slate-400">
-                              <div className="h-px flex-1 bg-slate-300" />
-                              <span className="text-xs font-medium text-slate-500">
-                                {formatDuration(item.duration)} • {item.stopLabel}
-                              </span>
-                              <div className="h-px flex-1 bg-slate-300" />
-                            </div>
-                            <p className="text-2xl font-bold text-[#0B1F3A]">{formatTime(item.arrivalTime)}</p>
+                      <div className="mb-1 flex items-center gap-2">
+                        <span className="w-14 text-xl font-bold text-[#0B1F3A]">{formatTime(item.departureTime)}</span>
+                        <div className="flex flex-1 flex-col items-center">
+                          <span className="text-[11px] text-slate-400">{formatDuration(item.duration)}</span>
+                          <div className="relative my-0.5 h-px w-full bg-slate-200">
+                            <div className="absolute left-0 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-slate-300" />
+                            <div className="absolute right-0 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-slate-300" />
                           </div>
-                          <p className="mt-1 text-xs text-slate-500">
-                            {searchInfo?.origin ?? "-"} → {searchInfo?.destination ?? "-"}
+                          <span className={`text-[11px] ${numericStops === 0 ? "text-emerald-600" : "text-slate-400"}`}>
+                            {stopText}
+                          </span>
+                        </div>
+                        <span className="w-14 text-right text-xl font-bold text-[#0B1F3A]">
+                          {formatTime(item.arrivalTime)}
+                        </span>
+                      </div>
+
+                      <div className="mb-3 flex items-center justify-between">
+                        <span className="text-xs text-slate-400">
+                          {searchInfo?.origin ?? "-"} → {searchInfo?.destination ?? "-"}
+                        </span>
+                        <span
+                          className={`rounded-full px-2 py-0.5 text-xs ${
+                            item.hasCheckedBag ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500"
+                          }`}
+                        >
+                          {item.hasCheckedBag ? "Checked bag incl." : "Carry-on only"}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <span className="text-lg font-bold text-[#2563EB]">
+                            {isRateLoading ? "..." : `${item.usdtPrice.toFixed(2)} USDT`}
+                          </span>
+                          <p className="text-xs text-slate-400">
+                            {item.totalAmount.toFixed(2)} {item.totalCurrency}
                           </p>
-                          <div className="mt-2">
-                            {item.hasCheckedBag ? (
-                              <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-medium text-emerald-700">
-                                Checked bag incl.
-                              </span>
-                            ) : (
-                              <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-500">
-                                Carry-on only
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            handleSelect(item.offer);
+                          }}
+                          disabled={isSelecting}
+                          className="h-10 rounded-xl bg-[#2563EB] px-5 text-sm font-semibold text-white disabled:opacity-60"
+                        >
+                          {isSelecting ? "..." : "Select →"}
+                        </button>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => setExpandedOffer(expandedOffer === item.offerId ? null : item.offerId)}
+                        className="mt-3 flex w-full items-center justify-center gap-1.5 border-t border-[#F0F4F9] pt-3 text-xs text-slate-400"
+                      >
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M7 10l5 5 5-5z" />
+                        </svg>
+                        {expandedOffer === item.offerId ? "Hide details" : "Flight details"}
+                      </button>
+
+                      {expandedOffer === item.offerId && (
+                        <div className="mt-3 border-t border-[#F0F4F9] pt-3">
+                          <div className="mb-4 flex items-center justify-between rounded-xl bg-[#F8FAFF] px-4 py-3">
+                            <div>
+                              <p className="text-sm font-semibold text-[#0B1F3A]">
+                                {searchInfo?.origin ?? "-"} → {searchInfo?.destination ?? "-"}
+                              </p>
+                              <p className="mt-0.5 text-xs text-slate-400">
+                                {departureDate} · {stopText}
+                              </p>
+                            </div>
+                            <p className="text-sm font-semibold text-[#2563EB]">{formatDuration(item.duration)}</p>
+                          </div>
+
+                          <div className="mb-4 flex flex-wrap gap-2">
+                            <span className="flex items-center gap-1 rounded-full bg-[#EAF3DE] px-3 py-1 text-xs text-[#3B6D11]">
+                              ✓ Carry-on included
+                            </span>
+                            {readValue(item.offer, ["total_currency"], "") && (
+                              <span className="rounded-full bg-[#EEF4FF] px-3 py-1 text-xs text-[#2563EB]">
+                                Economy
                               </span>
                             )}
                           </div>
-                        </div>
 
-                        <div className="lg:w-[20%] lg:text-right">
-                          <p className="text-3xl font-bold text-[#2563EB]">
-                            {isRateLoading ? "..." : `${item.usdtPrice.toFixed(2)} USDT`}
-                          </p>
-                          <p className="mt-1 text-xs text-slate-500">
-                            {item.totalAmount.toFixed(2)} {item.totalCurrency}
-                          </p>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              handleSelect(item.offer);
-                            }}
-                            disabled={isSelecting}
-                            className="mt-3 rounded-xl bg-[#2563EB] px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
-                          >
-                            {isSelecting ? "Continuing..." : "Select →"}
-                          </button>
+                          {segments ? (
+                            <div className="space-y-0">
+                              {segments.map((seg, idx) => {
+                                const segDep = String(
+                                  seg?.departing_at ?? seg?.departure_at ?? seg?.departure_time ?? seg?.departure ?? "",
+                                );
+                                const segArr = String(
+                                  seg?.arriving_at ?? seg?.arrival_at ?? seg?.arrival_time ?? seg?.arrival ?? "",
+                                );
+                                const segOriginData = (seg?.origin ?? {}) as Record<string, unknown>;
+                                const segDestData = (seg?.destination ?? {}) as Record<string, unknown>;
+                                const segOrigin = String(
+                                  segOriginData?.iata_code ??
+                                    seg?.origin_iata_code ??
+                                    seg?.origin_iata ??
+                                    seg?.departure_airport ??
+                                    "",
+                                );
+                                const segOriginCity = String(
+                                  (segOriginData?.city_name ??
+                                    (segOriginData?.city as Record<string, unknown> | undefined)?.name ??
+                                    segOriginData?.name ??
+                                    "") as string,
+                                );
+                                const segOriginAirport = String(segOriginData?.name ?? "");
+                                const segDest = String(
+                                  segDestData?.iata_code ??
+                                    seg?.destination_iata_code ??
+                                    seg?.destination_iata ??
+                                    seg?.arrival_airport ??
+                                    "",
+                                );
+                                const segDestCity = String(
+                                  (segDestData?.city_name ??
+                                    (segDestData?.city as Record<string, unknown> | undefined)?.name ??
+                                    segDestData?.name ??
+                                    "") as string,
+                                );
+                                const segDestAirport = String(segDestData?.name ?? "");
+                                const marketingCarrier = (seg?.marketing_carrier ?? {}) as Record<string, unknown>;
+                                const operatingCarrier = (seg?.operating_carrier ?? {}) as Record<string, unknown>;
+                                const carrier = (seg?.carrier ?? {}) as Record<string, unknown>;
+                                const segAirline = String(
+                                  marketingCarrier?.name ??
+                                    operatingCarrier?.name ??
+                                    carrier?.name ??
+                                    seg?.airline_name ??
+                                    seg?.airline ??
+                                    item.airline,
+                                );
+                                const segAirlineIata = String(
+                                  marketingCarrier?.iata_code ??
+                                    operatingCarrier?.iata_code ??
+                                    carrier?.iata_code ??
+                                    seg?.airline_iata ??
+                                    "",
+                                );
+                                const segFlightNo = String(
+                                  seg?.marketing_carrier_flight_number ?? seg?.flight_number ?? seg?.number ?? "",
+                                );
+                                const segDuration = String(seg?.duration ?? "");
+                                const nextSeg = segments[idx + 1];
+                                const layoverMinutes = nextSeg
+                                  ? (() => {
+                                      const arrMs = new Date(segArr).getTime();
+                                    const nextSegDep = String(
+                                      nextSeg?.departing_at ??
+                                        nextSeg?.departure_at ??
+                                        nextSeg?.departure_time ??
+                                        nextSeg?.departure ??
+                                        "",
+                                    );
+                                      const nextDepMs = new Date(
+                                      nextSegDep,
+                                      ).getTime();
+                                      if (Number.isNaN(arrMs) || Number.isNaN(nextDepMs)) {
+                                        return null;
+                                      }
+                                      return Math.round((nextDepMs - arrMs) / 60000);
+                                    })()
+                                  : null;
+
+                                return (
+                                  <div key={`${item.key}-seg-${idx}`}>
+                                    <div className="flex gap-3">
+                                      <div className="flex w-[10px] flex-shrink-0 flex-col items-center">
+                                        <div className="h-2.5 w-2.5 flex-shrink-0 rounded-full bg-[#2563EB]" />
+                                        <div className="w-px flex-1 bg-slate-200" />
+                                      </div>
+                                      <div className="pb-2">
+                                        <p className="text-sm font-bold text-[#0B1F3A]">{formatTime(segDep)}</p>
+                                        {(segOriginCity || segOrigin) && (
+                                          <p className="text-sm text-[#0B1F3A]">{segOriginCity || segOrigin}</p>
+                                        )}
+                                        {segOriginAirport && segOriginAirport !== segOriginCity && (
+                                          <p className="text-xs text-slate-400">
+                                            {segOriginAirport}
+                                            {segOrigin ? ` (${segOrigin})` : ""}
+                                          </p>
+                                        )}
+                                      </div>
+                                    </div>
+
+                                    <div className="flex gap-3">
+                                      <div className="flex w-[10px] flex-shrink-0 flex-col items-center">
+                                        <div className="h-2 w-2 rounded-full bg-transparent" />
+                                        <div className="w-px flex-1 bg-slate-200" />
+                                      </div>
+                                      <div className="mb-2 flex-1 rounded-xl bg-[#F8FAFF] px-3 py-2.5">
+                                        <div className="mb-1 flex items-center gap-2">
+                                          {segAirlineIata && (
+                                            <img
+                                              src={`https://www.gstatic.com/flights/airline_logos/70px/${segAirlineIata}.png`}
+                                              width={18}
+                                              height={18}
+                                              className="object-contain"
+                                              alt={segAirline}
+                                              onError={(event) => {
+                                                event.currentTarget.style.display = "none";
+                                              }}
+                                            />
+                                          )}
+                                          <span className="text-xs font-medium text-[#0B1F3A]">{segAirline}</span>
+                                        </div>
+                                        <p className="text-xs text-slate-500">
+                                          Travel time:{" "}
+                                          <span className="font-semibold text-[#2563EB]">
+                                            {formatDuration(segDuration)}
+                                          </span>
+                                          {segFlightNo && (
+                                            <span className="ml-2 text-slate-400">
+                                              · {segAirlineIata}
+                                              {segFlightNo}
+                                            </span>
+                                          )}
+                                        </p>
+                                      </div>
+                                    </div>
+
+                                    <div className="flex gap-3">
+                                      <div className="flex w-[10px] flex-shrink-0 flex-col items-center">
+                                        <div
+                                          className={`h-2.5 w-2.5 flex-shrink-0 rounded-full ${
+                                            layoverMinutes !== null ? "bg-slate-300" : "bg-emerald-500"
+                                          }`}
+                                        />
+                                        {layoverMinutes !== null ? <div className="w-px flex-1 bg-slate-200" /> : null}
+                                      </div>
+                                      <div className="pb-2">
+                                        <p className="text-sm font-bold text-[#0B1F3A]">{formatTime(segArr)}</p>
+                                        {(segDestCity || segDest) && (
+                                          <p className="text-sm text-[#0B1F3A]">{segDestCity || segDest}</p>
+                                        )}
+                                        {segDestAirport && segDestAirport !== segDestCity && (
+                                          <p className="text-xs text-slate-400">
+                                            {segDestAirport}
+                                            {segDest ? ` (${segDest})` : ""}
+                                          </p>
+                                        )}
+                                      </div>
+                                    </div>
+
+                                    {layoverMinutes !== null && (
+                                      <div className="flex gap-3">
+                                        <div className="flex w-[10px] flex-shrink-0 flex-col items-center">
+                                          <div className="h-2 w-2 rounded-full bg-transparent" />
+                                          <div className="w-px flex-1 bg-slate-200" />
+                                        </div>
+                                        <div
+                                          className={`mb-2 flex-1 rounded-xl border px-3 py-2 ${
+                                            layoverMinutes > 600
+                                              ? "border-orange-200 bg-orange-50"
+                                              : "border-[#E2EAF4] bg-white"
+                                          }`}
+                                        >
+                                          <div className="flex items-center gap-2">
+                                            <svg
+                                              width="12"
+                                              height="12"
+                                              viewBox="0 0 24 24"
+                                              fill={layoverMinutes > 600 ? "#f97316" : "#94a3b8"}
+                                            >
+                                              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z" />
+                                            </svg>
+                                            <p className="text-xs text-slate-500">
+                                              {Math.floor(layoverMinutes / 60)}h {layoverMinutes % 60}m layover ·{" "}
+                                              {segDestAirport || segDestCity || segDest}
+                                              {layoverMinutes > 600 && (
+                                                <span className="ml-1 font-semibold text-orange-500">· Overnight</span>
+                                              )}
+                                            </p>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          ) : (
+                            <div className="flex items-start gap-3">
+                              <div className="flex flex-col items-center">
+                                <div className="h-2.5 w-2.5 rounded-full bg-[#2563EB]" />
+                                <div className="my-1 min-h-[50px] w-px bg-slate-200" />
+                                <div className="h-2.5 w-2.5 rounded-full bg-slate-400" />
+                              </div>
+                              <div className="flex-1 space-y-4">
+                                <div>
+                                  <p className="text-sm font-bold text-[#0B1F3A]">{formatTime(item.departureTime)}</p>
+                                  <p className="text-xs text-slate-400">{searchInfo?.origin ?? "-"} · Departure</p>
+                                </div>
+                                <div className="rounded-xl bg-[#F8FAFF] px-3 py-2 text-xs text-slate-500">
+                                  {item.airline} · {formatDuration(item.duration)}
+                                  {numericStops > 0 && (
+                                    <span className="ml-1 text-orange-500">
+                                      · {numericStops} stop{numericStops > 1 ? "s" : ""}
+                                    </span>
+                                  )}
+                                </div>
+                                <div>
+                                  <p className="text-sm font-bold text-[#0B1F3A]">{formatTime(item.arrivalTime)}</p>
+                                  <p className="text-xs text-slate-400">{searchInfo?.destination ?? "-"} · Arrival</p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
                         </div>
-                      </div>
+                      )}
                     </article>
                   );
                 })}
@@ -849,6 +1165,240 @@ export default function ResultsPage() {
           </section>
         </div>
       </section>
+
+      <div className="fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center overflow-hidden rounded-full bg-[#0B1F3A] shadow-lg lg:hidden">
+        <button
+          type="button"
+          onClick={() => setShowMobilePanel("sort")}
+          className="flex items-center gap-2 px-5 py-3.5 text-sm font-semibold text-white"
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M3 18h6v-2H3v2zm0-5h12v-2H3v2zm0-7v2h18V6H3z" />
+          </svg>
+          Sort
+        </button>
+        <span className="h-5 w-px bg-white/20" />
+        <button
+          type="button"
+          onClick={() => setShowMobilePanel("filter")}
+          className="flex items-center gap-2 px-5 py-3.5 text-sm font-semibold text-white"
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M4.25 5.61C6.27 8.2 10 13 10 13v6c0 .55.45 1 1 1h2c.55 0 1-.45 1-1v-6s3.72-4.8 5.74-7.39A.998.998 0 0 0 18.95 4H5.04a1 1 0 0 0-.79 1.61z" />
+          </svg>
+          Filter
+        </button>
+      </div>
+
+      <div className={`fixed inset-0 z-50 lg:hidden ${showMobilePanel ? "block" : "hidden"}`}>
+        <div className="absolute inset-0 bg-black/40" onClick={() => setShowMobilePanel(null)} />
+
+        <div className="absolute bottom-0 left-0 right-0 rounded-t-2xl bg-white">
+          {showMobilePanel === "sort" && (
+            <div>
+              <div className="flex items-center justify-between border-b border-[#F0F4F9] px-5 py-4">
+                <h3 className="text-base font-semibold text-[#0B1F3A]">Sort by</h3>
+                <button
+                  type="button"
+                  onClick={() => setShowMobilePanel(null)}
+                  className="text-xl text-slate-400"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="space-y-0 px-5 py-3">
+                {[
+                  { value: "best", label: "Best Price" },
+                  { value: "shortest", label: "Shortest Duration" },
+                  { value: "departure", label: "Earliest Departure" },
+                  { value: "arrival", label: "Arrival Time" },
+                ].map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => {
+                      setSortBy(option.value as "best" | "shortest" | "departure" | "arrival");
+                      setShowMobilePanel(null);
+                    }}
+                    className={`flex w-full items-center justify-between border-b border-[#F0F4F9] py-4 text-sm ${
+                      sortBy === option.value ? "font-semibold text-[#2563EB]" : "text-[#0B1F3A]"
+                    }`}
+                  >
+                    {option.label}
+                    {sortBy === option.value && (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="#2563EB">
+                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                      </svg>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {showMobilePanel === "filter" && (
+            <div className="max-h-[80vh] overflow-y-auto">
+              <div className="sticky top-0 flex items-center justify-between border-b border-[#F0F4F9] bg-white px-5 py-4">
+                <h3 className="text-base font-semibold text-[#0B1F3A]">Filters</h3>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedStops(uniqueStopOptions);
+                      setMaxPriceFilter(maxPrice);
+                      setDepartureHourLimit(24);
+                      setFilterMaxArr(24);
+                      setMaxDurationHours(maxDurationAvailable);
+                      setSelectedAirlines(uniqueAirlineOptions);
+                    }}
+                    className="text-sm text-[#2563EB]"
+                  >
+                    Reset
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowMobilePanel(null)}
+                    className="text-xl text-slate-400"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+
+              <div className="border-b border-[#F0F4F9] px-5 py-4">
+                <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Price (USDT)</p>
+                <input
+                  type="range"
+                  min={minPrice}
+                  max={Math.max(minPrice, maxPrice)}
+                  value={maxPriceFilter}
+                  step="1"
+                  onChange={(event) => setMaxPriceFilter(Number(event.target.value))}
+                  className="w-full"
+                />
+                <div className="mt-1 flex justify-between text-xs text-slate-400">
+                  <span>${minPrice}</span>
+                  <span>Up to ${maxPriceFilter}</span>
+                </div>
+              </div>
+
+              <div className="border-b border-[#F0F4F9] px-5 py-4">
+                <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Duration</p>
+                <input
+                  type="range"
+                  min={60}
+                  max={Math.max(60, maxDurationAvailable * 60)}
+                  value={maxDurationHours * 60}
+                  step="30"
+                  onChange={(event) => setMaxDurationHours(Math.max(1, Math.ceil(Number(event.target.value) / 60)))}
+                  className="w-full"
+                />
+                <div className="mt-1 flex justify-between text-xs text-slate-400">
+                  <span>1h</span>
+                  <span>Up to {maxDurationHours}h</span>
+                </div>
+              </div>
+
+              <div className="border-b border-[#F0F4F9] px-5 py-4">
+                <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Departure time</p>
+                <input
+                  type="range"
+                  min={0}
+                  max={24}
+                  value={departureHourLimit}
+                  step="1"
+                  onChange={(event) => setDepartureHourLimit(Number(event.target.value))}
+                  className="w-full"
+                />
+                <div className="mt-1 flex justify-between text-xs text-slate-400">
+                  <span>00:00</span>
+                  <span>Up to {departureHourLimit}:59</span>
+                </div>
+              </div>
+
+              <div className="border-b border-[#F0F4F9] px-5 py-4">
+                <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Arrival time</p>
+                <input
+                  type="range"
+                  min={0}
+                  max={24}
+                  value={filterMaxArr}
+                  step="1"
+                  onChange={(event) => setFilterMaxArr(Number(event.target.value))}
+                  className="w-full"
+                />
+                <div className="mt-1 flex justify-between text-xs text-slate-400">
+                  <span>00:00</span>
+                  <span>{filterMaxArr >= 24 ? "23:59" : `${String(filterMaxArr).padStart(2, "0")}:00`}</span>
+                </div>
+              </div>
+
+              <div className="border-b border-[#F0F4F9] px-5 py-4">
+                <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Stops</p>
+                <div className="space-y-3">
+                  {[0, 1, 2].map((stop) => {
+                    const key = Math.min(stop, 3);
+                    const price = minPriceForStop(key);
+                    return (
+                      <label key={stop} className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="checkbox"
+                            checked={selectedStops.includes(key)}
+                            onChange={() => toggleStop(key)}
+                            className="h-4 w-4 accent-[#2563EB]"
+                          />
+                          <span className="text-sm text-[#0B1F3A]">
+                            {stop === 0 ? "Nonstop" : stop === 1 ? "1 stop" : "2+ stops"}
+                          </span>
+                        </div>
+                        {price !== undefined && (
+                          <span className="text-sm text-slate-400">{Math.round(price)} USDT</span>
+                        )}
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="border-b border-[#F0F4F9] px-5 py-4">
+                <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Airlines</p>
+                <div className="space-y-3">
+                  {uniqueAirlineOptions.map((airline) => {
+                    const price = minPriceForAirline(airline);
+                    return (
+                      <label key={airline} className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="checkbox"
+                            checked={selectedAirlines.includes(airline)}
+                            onChange={() => toggleAirline(airline)}
+                            className="h-4 w-4 accent-[#2563EB]"
+                          />
+                          <span className="text-sm text-[#0B1F3A]">{airline}</span>
+                        </div>
+                        {price !== undefined && (
+                          <span className="text-sm text-slate-400">{Math.round(price)} USDT</span>
+                        )}
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="sticky bottom-0 border-t border-[#F0F4F9] bg-white px-5 py-4">
+                <button
+                  type="button"
+                  onClick={() => setShowMobilePanel(null)}
+                  className="h-12 w-full rounded-2xl bg-[#2563EB] text-sm font-semibold text-white"
+                >
+                  Show {filteredOffers.length} flights
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
     </main>
   );
 }
