@@ -482,7 +482,7 @@ export default function ResultsPage() {
 
     setSelectingOfferId(offerId);
     sessionStorage.setItem("selectedOffer", JSON.stringify(offer));
-    router.push("/passenger");
+    router.push("/flight-summary");
   };
 
   const minPriceForStop = (stop: number) => stopMinPriceMap.get(stop);

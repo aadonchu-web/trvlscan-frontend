@@ -239,7 +239,7 @@ export default function PassengerPage() {
             <div className="flex items-center gap-2 text-xs text-slate-500">
               <div className="flex items-center gap-2">
                 <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#2563EB] text-[10px] font-semibold text-white">
-                  1
+                  ✓
                 </span>
                 <span className="text-[#2563EB]">Search</span>
               </div>
@@ -248,12 +248,19 @@ export default function PassengerPage() {
                 <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#2563EB] text-[10px] font-semibold text-white">
                   2
                 </span>
+                <span className="text-[#2563EB]">Flight</span>
+              </div>
+              <div className="h-px flex-1 bg-[#2563EB]" />
+              <div className="flex items-center gap-2">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#2563EB] text-[10px] font-semibold text-white">
+                  3
+                </span>
                 <span className="font-semibold text-[#2563EB]">Passenger Details</span>
               </div>
               <div className="h-px flex-1 bg-slate-200" />
               <div className="flex items-center gap-2">
                 <span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-200 text-[10px] font-semibold text-slate-500">
-                  3
+                  4
                 </span>
                 <span>Payment</span>
               </div>
