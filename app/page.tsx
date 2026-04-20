@@ -38,8 +38,6 @@ export default function HomePage() {
   const [multiCityDestinationSuggestions, setMultiCityDestinationSuggestions] = useState<AirportSuggestion[][]>([[], []]);
   const paxDropdownRef = useRef<HTMLDivElement>(null);
 
-  const tabActiveClass = "bg-[#1B4FFF] text-white shadow-lg shadow-primary/20";
-  const tabInactiveClass = "bg-surface-container-high text-on-surface-variant";
   const inputClass =
     "h-14 px-4 bg-surface-container-low rounded-xl border border-outline-variant/30 text-base font-medium text-on-surface placeholder:text-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/20";
   const compactSearchButtonClass =
