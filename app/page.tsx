@@ -100,7 +100,7 @@ export default function HomePage() {
           tripType,
           origin: resolvedOrigin,
           destination: resolvedDestination,
-          date,
+          departure_date: date,
           returnDate,
           passengers: totalPassengers,
           cabinClass,
