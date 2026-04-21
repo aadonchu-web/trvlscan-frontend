@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { searchFlights } from "@/lib/api";
 
 type OfferRecord = Record<string, unknown>;
 
@@ -163,40 +164,75 @@ export default function ResultsPage() {
   const [showMobilePanel, setShowMobilePanel] = useState<"sort" | "filter" | null>(null);
   const [expandedOffer, setExpandedOffer] = useState<string | null>(null);
   const [filterMaxArr, setFilterMaxArr] = useState(24);
+  const [isLoadingOffers, setIsLoadingOffers] = useState(true);
+  const [offersError, setOffersError] = useState<string | null>(null);
+  const [retryToken, setRetryToken] = useState(0);
 
   useEffect(() => {
-    const rawOffers = sessionStorage.getItem("searchOffers");
     const rawSearchParams = sessionStorage.getItem("searchParams");
+    if (!rawSearchParams) {
+      router.replace("/");
+      return;
+    }
 
-    if (rawOffers) {
-      try {
-        const parsedOffers = JSON.parse(rawOffers);
-        setOffers(Array.isArray(parsedOffers) ? (parsedOffers as OfferRecord[]) : []);
-      } catch {
+    let parsedParams: {
+      origin?: string;
+      destination?: string;
+      departure_date?: string;
+      passengers?: number;
+    };
+    try {
+      parsedParams = JSON.parse(rawSearchParams);
+    } catch {
+      router.replace("/");
+      return;
+    }
+
+    const origin = parsedParams.origin;
+    const destination = parsedParams.destination;
+    const departure_date = parsedParams.departure_date;
+    const passengers = Number(parsedParams.passengers ?? 1);
+
+    if (!origin || !destination || !departure_date) {
+      router.replace("/");
+      return;
+    }
+
+    setSearchInfo({
+      origin,
+      destination,
+      departure_date,
+      passengers,
+    });
+    setSelectedDate(departure_date);
+
+    let isCancelled = false;
+    setIsLoadingOffers(true);
+    setOffersError(null);
+
+    searchFlights({ origin, destination, departure_date, passengers })
+      .then((response) => {
+        if (isCancelled) return;
+        const list = Array.isArray(response)
+          ? (response as OfferRecord[])
+          : ((response as { offers?: OfferRecord[] })?.offers ?? []);
+        setOffers(list);
+        setIsLoadingOffers(false);
+      })
+      .catch((error: unknown) => {
+        if (isCancelled) return;
+        const message = error instanceof Error && error.message
+          ? error.message
+          : "We couldn't reach the flight search service. Please try again.";
         setOffers([]);
-      }
-    }
+        setOffersError(message);
+        setIsLoadingOffers(false);
+      });
 
-    if (rawSearchParams) {
-      try {
-        const parsedParams = JSON.parse(rawSearchParams) as {
-          origin?: string;
-          destination?: string;
-          departure_date?: string;
-          passengers?: number;
-        };
-        setSearchInfo({
-          origin: parsedParams.origin ?? "-",
-          destination: parsedParams.destination ?? "-",
-          departure_date: parsedParams.departure_date ?? "-",
-          passengers: Number(parsedParams.passengers ?? 1),
-        });
-        setSelectedDate(parsedParams.departure_date ?? "");
-      } catch {
-        setSearchInfo(null);
-      }
-    }
-  }, []);
+    return () => {
+      isCancelled = true;
+    };
+  }, [retryToken, router]);
 
   const dateOptions = useMemo(
     () => buildDateWindow(selectedDate || searchInfo?.departure_date || ""),
@@ -557,6 +593,53 @@ export default function ResultsPage() {
           </div>
         </div>
 
+        {isLoadingOffers ? (
+          <div className="rounded-2xl border border-[#E2EAF4] bg-white p-10">
+            <div className="mx-auto flex max-w-md flex-col items-center gap-4 text-center">
+              <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#E2EAF4] border-t-[#2563EB]" />
+              <div>
+                <p className="text-base font-semibold text-[#0B1F3A]">Searching flights</p>
+                <p className="mt-1 text-sm text-slate-500">
+                  {searchInfo
+                    ? `Looking for the best fares from ${searchInfo.origin} to ${searchInfo.destination}.`
+                    : "Looking for the best fares."}
+                </p>
+              </div>
+              <div className="mt-2 w-full space-y-3">
+                {[0, 1, 2].map((placeholder) => (
+                  <div
+                    key={placeholder}
+                    className="h-20 w-full animate-pulse rounded-2xl bg-slate-100"
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : offersError ? (
+          <div className="rounded-2xl border border-rose-200 bg-white p-6">
+            <div className="flex flex-col gap-3">
+              <p className="text-base font-semibold text-[#0B1F3A]">Couldn&apos;t load flights</p>
+              <p className="text-sm text-slate-500">{offersError}</p>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setRetryToken((n) => n + 1)}
+                  className="h-10 rounded-xl bg-[#2563EB] px-4 text-sm font-semibold text-white"
+                >
+                  Try again
+                </button>
+                <button
+                  type="button"
+                  onClick={() => router.push("/")}
+                  className="h-10 rounded-xl border border-[#E2EAF4] bg-white px-4 text-sm font-semibold text-[#0B1F3A]"
+                >
+                  New search
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : (
+        <>
         <div className="overflow-x-auto">
           <div className="flex min-w-max gap-2 pb-1">
             {dateOptions.map((dateOption) => {
@@ -1164,8 +1247,12 @@ export default function ResultsPage() {
             )}
           </section>
         </div>
+        </>
+        )}
       </section>
 
+      {!isLoadingOffers && !offersError && (
+      <>
       <div className="fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center overflow-hidden rounded-full bg-[#0B1F3A] shadow-lg lg:hidden">
         <button
           type="button"
@@ -1399,6 +1486,8 @@ export default function ResultsPage() {
           )}
         </div>
       </div>
+      </>
+      )}
     </main>
   );
 }
