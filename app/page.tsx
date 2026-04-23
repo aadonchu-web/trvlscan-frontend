@@ -571,7 +571,7 @@ export default function HomePage() {
 
       {/* CONTENT CONTAINER */}
       <div style={{ paddingTop: 80, paddingBottom: 40 }}>
-        <div className="max-w-[1280px] mx-auto" style={{ padding: "0 12px" }}>
+        <div className="max-w-[1440px] mx-auto" style={{ padding: "0 12px" }}>
           {/* SPLIT VIEW */}
           <section className="grid grid-cols-1 lg:grid-cols-2" style={{ gap: 16 }}>
             {/* LEFT — SEARCH FORM */}
