@@ -4,11 +4,19 @@ if (!API_BASE_URL) {
   throw new Error("NEXT_PUBLIC_API_URL is not defined");
 }
 
-export type SearchFlightsParams = {
+export type FlightSlice = {
   origin: string;
   destination: string;
   departure_date: string;
+};
+
+export type SearchFlightsParams = {
+  origin?: string;
+  destination?: string;
+  departure_date?: string;
   passengers: number;
+  slices?: FlightSlice[];
+  cabin_class?: string;
 };
 
 export type CreateBookingParams = {
@@ -36,12 +44,14 @@ async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
 }
 
 export async function searchFlights(params: SearchFlightsParams) {
-  const payload = {
-    origin: params.origin,
-    destination: params.destination,
-    departure_date: params.departure_date,
+  const payload: Record<string, unknown> = {
     passengers: params.passengers,
   };
+  if (params.slices) payload.slices = params.slices;
+  if (params.cabin_class) payload.cabin_class = params.cabin_class;
+  if (params.origin) payload.origin = params.origin;
+  if (params.destination) payload.destination = params.destination;
+  if (params.departure_date) payload.departure_date = params.departure_date;
 
   return request("/api/flights/search", {
     method: "POST",

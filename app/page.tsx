@@ -230,9 +230,21 @@ export default function HomePage() {
         alert("Please fill at least 2 flight legs");
         return;
       }
+      const slices = validLegs.map((leg) => ({
+        origin: leg.originSelected as string,
+        destination: leg.destinationSelected as string,
+        departure_date: leg.date,
+      }));
       sessionStorage.setItem(
         "searchParams",
-        JSON.stringify({ tripType: "multicity", legs: validLegs, passengers: totalPassengers, cabinClass }),
+        JSON.stringify({
+          tripType: "multicity",
+          legs: validLegs,
+          slices,
+          passengers: totalPassengers,
+          cabinClass,
+          cabin_class: cabinClass,
+        }),
       );
     } else {
       const resolvedOrigin =
@@ -253,6 +265,13 @@ export default function HomePage() {
         alert("Please select a return date");
         return;
       }
+      const slices =
+        tripType === "roundtrip"
+          ? [
+              { origin: resolvedOrigin, destination: resolvedDestination, departure_date: date },
+              { origin: resolvedDestination, destination: resolvedOrigin, departure_date: returnDate },
+            ]
+          : [{ origin: resolvedOrigin, destination: resolvedDestination, departure_date: date }];
       sessionStorage.setItem(
         "searchParams",
         JSON.stringify({
@@ -261,8 +280,10 @@ export default function HomePage() {
           destination: resolvedDestination,
           departure_date: date,
           returnDate,
+          slices,
           passengers: totalPassengers,
           cabinClass,
+          cabin_class: cabinClass,
         }),
       );
     }

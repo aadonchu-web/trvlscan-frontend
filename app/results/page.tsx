@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { searchFlights } from "@/lib/api";
+import { searchFlights, type FlightSlice } from "@/lib/api";
 
 type OfferRecord = Record<string, unknown>;
 
@@ -96,6 +96,71 @@ function formatDateTabLabel(date: Date) {
   });
 }
 
+function formatHeaderDate(iso: string) {
+  if (!iso) return "";
+  const d = new Date(`${iso}T00:00:00`);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString([], { month: "short", day: "numeric" });
+}
+
+function buildMultiCityRoute(slices: FlightSlice[] | undefined) {
+  if (!slices || slices.length === 0) return "";
+  const airports: string[] = [slices[0].origin];
+  slices.forEach((slice) => {
+    if (airports[airports.length - 1] !== slice.origin) {
+      airports.push(slice.origin);
+    }
+    airports.push(slice.destination);
+  });
+  return airports.join(" → ");
+}
+
+type SliceCardInfo = {
+  departure: string;
+  arrival: string;
+  duration: string;
+  origin: string;
+  destination: string;
+  stops: number;
+  stopLabel: string;
+};
+
+function getSliceCardInfo(slice: Record<string, unknown>): SliceCardInfo {
+  const segments = Array.isArray(slice.segments)
+    ? (slice.segments as Record<string, unknown>[])
+    : [];
+  const firstSeg = (segments[0] ?? {}) as Record<string, unknown>;
+  const lastSeg = (segments[segments.length - 1] ?? {}) as Record<string, unknown>;
+  const departure = String(
+    firstSeg.departing_at ?? firstSeg.departure_at ?? firstSeg.departure_time ?? "",
+  );
+  const arrival = String(
+    lastSeg.arriving_at ?? lastSeg.arrival_at ?? lastSeg.arrival_time ?? "",
+  );
+  const duration = String(slice.duration ?? "");
+  const sliceOrigin = (slice.origin ?? {}) as Record<string, unknown>;
+  const sliceDestination = (slice.destination ?? {}) as Record<string, unknown>;
+  const origin = String(sliceOrigin.iata_code ?? "");
+  const destination = String(sliceDestination.iata_code ?? "");
+  const stops = Math.max(0, segments.length - 1);
+  const stopLabel = stops === 0 ? "Nonstop" : `${stops} stop${stops > 1 ? "s" : ""}`;
+  return { departure, arrival, duration, origin, destination, stops, stopLabel };
+}
+
+function getSliceLabel(
+  tripType: "oneway" | "roundtrip" | "multicity",
+  index: number,
+  isoDate: string,
+) {
+  const dateLabel = formatHeaderDate(isoDate);
+  if (tripType === "roundtrip") {
+    const base = index === 0 ? "OUTBOUND" : "RETURN";
+    return dateLabel ? `${base} · ${dateLabel}` : base;
+  }
+  const base = `FLIGHT ${index + 1}`;
+  return dateLabel ? `${base} · ${dateLabel}` : base;
+}
+
 function buildDateWindow(baseDateString: string) {
   const parsedDate = new Date(baseDateString);
   const baseDate = Number.isNaN(parsedDate.getTime()) ? new Date() : parsedDate;
@@ -146,10 +211,13 @@ export default function ResultsPage() {
   const router = useRouter();
   const [offers, setOffers] = useState<OfferRecord[]>([]);
   const [searchInfo, setSearchInfo] = useState<{
+    tripType: "oneway" | "roundtrip" | "multicity";
     origin: string;
     destination: string;
     departure_date: string;
+    returnDate?: string;
     passengers: number;
+    slices?: FlightSlice[];
   } | null>(null);
   const [gbpUsdRate, setGbpUsdRate] = useState<number | null>(null);
   const [isRateLoading, setIsRateLoading] = useState(true);
@@ -176,10 +244,15 @@ export default function ResultsPage() {
     }
 
     let parsedParams: {
+      tripType?: "oneway" | "roundtrip" | "multicity";
       origin?: string;
       destination?: string;
       departure_date?: string;
+      returnDate?: string;
       passengers?: number;
+      slices?: FlightSlice[];
+      cabin_class?: string;
+      cabinClass?: string;
     };
     try {
       parsedParams = JSON.parse(rawSearchParams);
@@ -188,10 +261,18 @@ export default function ResultsPage() {
       return;
     }
 
-    const origin = parsedParams.origin;
-    const destination = parsedParams.destination;
-    const departure_date = parsedParams.departure_date;
+    const tripType = parsedParams.tripType ?? "oneway";
+    const slices = parsedParams.slices;
     const passengers = Number(parsedParams.passengers ?? 1);
+
+    let origin = parsedParams.origin;
+    let destination = parsedParams.destination;
+    let departure_date = parsedParams.departure_date;
+    if (slices && slices.length > 0) {
+      if (!origin) origin = slices[0].origin;
+      if (!destination) destination = slices[slices.length - 1].destination;
+      if (!departure_date) departure_date = slices[0].departure_date;
+    }
 
     if (!origin || !destination || !departure_date) {
       router.replace("/");
@@ -199,10 +280,13 @@ export default function ResultsPage() {
     }
 
     setSearchInfo({
+      tripType,
       origin,
       destination,
       departure_date,
+      returnDate: parsedParams.returnDate,
       passengers,
+      slices,
     });
     setSelectedDate(departure_date);
 
@@ -210,7 +294,16 @@ export default function ResultsPage() {
     setIsLoadingOffers(true);
     setOffersError(null);
 
-    searchFlights({ origin, destination, departure_date, passengers })
+    const searchPromise =
+      slices && slices.length > 0
+        ? searchFlights({
+            slices,
+            passengers,
+            cabin_class: parsedParams.cabin_class || parsedParams.cabinClass || "economy",
+          })
+        : searchFlights({ origin, destination, departure_date, passengers });
+
+    searchPromise
       .then((response) => {
         if (isCancelled) return;
         const list = Array.isArray(response)
@@ -579,17 +672,48 @@ export default function ResultsPage() {
       <section className="mx-auto flex w-full max-w-7xl flex-col gap-5">
         <div className="w-full rounded-2xl border border-[#E2EAF4] bg-white px-4 py-3 text-sm text-slate-500">
           <div className="flex flex-wrap items-center gap-2 md:gap-3">
-            <span className="font-semibold text-[#0B1F3A]">
-              {searchInfo?.origin ?? "-"} <span className="mx-1 text-slate-400">→</span>{" "}
-              {searchInfo?.destination ?? "-"}
-            </span>
-            <span className="text-slate-300">|</span>
-            <span>{searchInfo?.departure_date ?? "-"}</span>
-            <span className="text-slate-300">|</span>
-            <span>{searchInfo?.passengers ?? 1} passenger(s)</span>
-            <span className="rounded-full bg-[#DBEAFE] px-2.5 py-1 text-xs font-semibold text-[#2563EB]">
-              One Way
-            </span>
+            {searchInfo?.tripType === "roundtrip" ? (
+              <>
+                <span className="font-semibold text-[#0B1F3A]">
+                  {searchInfo.origin} <span className="mx-1 text-slate-400">⇄</span> {searchInfo.destination}
+                </span>
+                <span className="text-slate-300">|</span>
+                <span>
+                  {formatHeaderDate(searchInfo.departure_date)}
+                  {searchInfo.returnDate ? ` – ${formatHeaderDate(searchInfo.returnDate)}` : ""}
+                </span>
+                <span className="text-slate-300">|</span>
+                <span>{searchInfo.passengers} passenger(s)</span>
+                <span className="rounded-full bg-[#DBEAFE] px-2.5 py-1 text-xs font-semibold text-[#2563EB]">
+                  Round Trip
+                </span>
+              </>
+            ) : searchInfo?.tripType === "multicity" ? (
+              <>
+                <span className="font-semibold text-[#0B1F3A]">{buildMultiCityRoute(searchInfo.slices)}</span>
+                <span className="text-slate-300">|</span>
+                <span>{searchInfo.slices?.length ?? 0} flights</span>
+                <span className="text-slate-300">|</span>
+                <span>{searchInfo.passengers} passenger(s)</span>
+                <span className="rounded-full bg-[#DBEAFE] px-2.5 py-1 text-xs font-semibold text-[#2563EB]">
+                  Multi City
+                </span>
+              </>
+            ) : (
+              <>
+                <span className="font-semibold text-[#0B1F3A]">
+                  {searchInfo?.origin ?? "-"} <span className="mx-1 text-slate-400">→</span>{" "}
+                  {searchInfo?.destination ?? "-"}
+                </span>
+                <span className="text-slate-300">|</span>
+                <span>{searchInfo?.departure_date ?? "-"}</span>
+                <span className="text-slate-300">|</span>
+                <span>{searchInfo?.passengers ?? 1} passenger(s)</span>
+                <span className="rounded-full bg-[#DBEAFE] px-2.5 py-1 text-xs font-semibold text-[#2563EB]">
+                  One Way
+                </span>
+              </>
+            )}
           </div>
         </div>
 
@@ -640,6 +764,7 @@ export default function ResultsPage() {
           </div>
         ) : (
         <>
+        {searchInfo?.tripType === "oneway" && (
         <div className="overflow-x-auto">
           <div className="flex min-w-max gap-2 pb-1">
             {dateOptions.map((dateOption) => {
@@ -696,6 +821,7 @@ export default function ResultsPage() {
             })}
           </div>
         </div>
+        )}
 
         <div className="flex items-start gap-4">
           <aside className="hidden w-56 flex-shrink-0 rounded-2xl border border-[#E2EAF4] bg-white p-4 lg:sticky lg:top-6 lg:block">
@@ -849,23 +975,13 @@ export default function ResultsPage() {
                   const hasNonstop = item.stops === 0;
                   const numericStops = item.stops;
                   const stopText = numericStops === 0 ? "Nonstop" : `${numericStops} stop${numericStops > 1 ? "s" : ""}`;
-                  const segments = (() => {
+                  const offerSlices = (() => {
                     const offerData = item.offer as Record<string, unknown>;
-                    const slices = offerData?.slices as unknown[];
-                    if (
-                      Array.isArray(slices) &&
-                      slices[0] &&
-                      typeof slices[0] === "object" &&
-                      Array.isArray((slices[0] as Record<string, unknown>).segments)
-                    ) {
-                      return (slices[0] as Record<string, unknown>).segments as Record<string, unknown>[];
-                    }
-                    const segs = offerData?.segments;
-                    if (Array.isArray(segs)) {
-                      return segs as Record<string, unknown>[];
-                    }
-                    return null;
+                    const slices = offerData?.slices;
+                    return Array.isArray(slices) ? (slices as Record<string, unknown>[]) : [];
                   })();
+                  const tripTypeForCard = searchInfo?.tripType ?? "oneway";
+                  const isMultiSlice = offerSlices.length > 1 && tripTypeForCard !== "oneway";
                   const departureDate = new Date(item.departureTime).toLocaleDateString([], {
                     weekday: "short",
                     day: "numeric",
@@ -925,35 +1041,83 @@ export default function ResultsPage() {
                         </div>
                       </div>
 
-                      <div className="mb-1 flex items-center gap-2">
-                        <span className="w-14 text-xl font-bold text-[#0B1F3A]">{formatTime(item.departureTime)}</span>
-                        <div className="flex flex-1 flex-col items-center">
-                          <span className="text-[11px] text-slate-400">{formatDuration(item.duration)}</span>
-                          <div className="relative my-0.5 h-px w-full bg-slate-200">
-                            <div className="absolute left-0 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-slate-300" />
-                            <div className="absolute right-0 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-slate-300" />
+                      {isMultiSlice ? (
+                        <div className="mb-3 space-y-2">
+                          {offerSlices.map((slice, sliceIdx) => {
+                            const sliceInfo = getSliceCardInfo(slice);
+                            const arrow =
+                              tripTypeForCard === "roundtrip" && sliceIdx === 1 ? "←" : "→";
+                            return (
+                              <div
+                                key={`${item.key}-slice-${sliceIdx}`}
+                                className="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-sm"
+                              >
+                                <span className="text-base leading-none text-slate-400">{arrow}</span>
+                                <span className="font-bold text-[#0B1F3A]">
+                                  {formatTime(sliceInfo.departure)}
+                                </span>
+                                <span className="text-slate-500">{sliceInfo.origin || "-"}</span>
+                                <span className="text-slate-300">—</span>
+                                <span className="font-bold text-[#0B1F3A]">
+                                  {formatTime(sliceInfo.arrival)}
+                                </span>
+                                <span className="text-slate-500">{sliceInfo.destination || "-"}</span>
+                                <span className="ml-1 text-xs text-slate-400">
+                                  {formatDuration(sliceInfo.duration)}
+                                </span>
+                                <span
+                                  className={`text-xs ${
+                                    sliceInfo.stops === 0 ? "text-emerald-600" : "text-slate-400"
+                                  }`}
+                                >
+                                  {sliceInfo.stopLabel}
+                                </span>
+                              </div>
+                            );
+                          })}
+                          <div className="flex justify-end pt-0.5">
+                            <span
+                              className={`rounded-full px-2 py-0.5 text-xs ${
+                                item.hasCheckedBag ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500"
+                              }`}
+                            >
+                              {item.hasCheckedBag ? "Checked bag incl." : "Carry-on only"}
+                            </span>
                           </div>
-                          <span className={`text-[11px] ${numericStops === 0 ? "text-emerald-600" : "text-slate-400"}`}>
-                            {stopText}
-                          </span>
                         </div>
-                        <span className="w-14 text-right text-xl font-bold text-[#0B1F3A]">
-                          {formatTime(item.arrivalTime)}
-                        </span>
-                      </div>
+                      ) : (
+                        <>
+                          <div className="mb-1 flex items-center gap-2">
+                            <span className="w-14 text-xl font-bold text-[#0B1F3A]">{formatTime(item.departureTime)}</span>
+                            <div className="flex flex-1 flex-col items-center">
+                              <span className="text-[11px] text-slate-400">{formatDuration(item.duration)}</span>
+                              <div className="relative my-0.5 h-px w-full bg-slate-200">
+                                <div className="absolute left-0 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-slate-300" />
+                                <div className="absolute right-0 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-slate-300" />
+                              </div>
+                              <span className={`text-[11px] ${numericStops === 0 ? "text-emerald-600" : "text-slate-400"}`}>
+                                {stopText}
+                              </span>
+                            </div>
+                            <span className="w-14 text-right text-xl font-bold text-[#0B1F3A]">
+                              {formatTime(item.arrivalTime)}
+                            </span>
+                          </div>
 
-                      <div className="mb-3 flex items-center justify-between">
-                        <span className="text-xs text-slate-400">
-                          {searchInfo?.origin ?? "-"} → {searchInfo?.destination ?? "-"}
-                        </span>
-                        <span
-                          className={`rounded-full px-2 py-0.5 text-xs ${
-                            item.hasCheckedBag ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500"
-                          }`}
-                        >
-                          {item.hasCheckedBag ? "Checked bag incl." : "Carry-on only"}
-                        </span>
-                      </div>
+                          <div className="mb-3 flex items-center justify-between">
+                            <span className="text-xs text-slate-400">
+                              {searchInfo?.origin ?? "-"} → {searchInfo?.destination ?? "-"}
+                            </span>
+                            <span
+                              className={`rounded-full px-2 py-0.5 text-xs ${
+                                item.hasCheckedBag ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500"
+                              }`}
+                            >
+                              {item.hasCheckedBag ? "Checked bag incl." : "Carry-on only"}
+                            </span>
+                          </div>
+                        </>
+                      )}
 
                       <div className="flex items-center justify-between">
                         <div>
@@ -989,18 +1153,6 @@ export default function ResultsPage() {
 
                       {expandedOffer === item.offerId && (
                         <div className="mt-3 border-t border-[#F0F4F9] pt-3">
-                          <div className="mb-4 flex items-center justify-between rounded-xl bg-[#F8FAFF] px-4 py-3">
-                            <div>
-                              <p className="text-sm font-semibold text-[#0B1F3A]">
-                                {searchInfo?.origin ?? "-"} → {searchInfo?.destination ?? "-"}
-                              </p>
-                              <p className="mt-0.5 text-xs text-slate-400">
-                                {departureDate} · {stopText}
-                              </p>
-                            </div>
-                            <p className="text-sm font-semibold text-[#2563EB]">{formatDuration(item.duration)}</p>
-                          </div>
-
                           <div className="mb-4 flex flex-wrap gap-2">
                             <span className="flex items-center gap-1 rounded-full bg-[#EAF3DE] px-3 py-1 text-xs text-[#3B6D11]">
                               ✓ Carry-on included
@@ -1012,205 +1164,293 @@ export default function ResultsPage() {
                             )}
                           </div>
 
-                          {segments ? (
-                            <div className="space-y-0">
-                              {segments.map((seg, idx) => {
-                                const segDep = String(
-                                  seg?.departing_at ?? seg?.departure_at ?? seg?.departure_time ?? seg?.departure ?? "",
-                                );
-                                const segArr = String(
-                                  seg?.arriving_at ?? seg?.arrival_at ?? seg?.arrival_time ?? seg?.arrival ?? "",
-                                );
-                                const segOriginData = (seg?.origin ?? {}) as Record<string, unknown>;
-                                const segDestData = (seg?.destination ?? {}) as Record<string, unknown>;
-                                const segOrigin = String(
-                                  segOriginData?.iata_code ??
-                                    seg?.origin_iata_code ??
-                                    seg?.origin_iata ??
-                                    seg?.departure_airport ??
-                                    "",
-                                );
-                                const segOriginCity = String(
-                                  (segOriginData?.city_name ??
-                                    (segOriginData?.city as Record<string, unknown> | undefined)?.name ??
-                                    segOriginData?.name ??
-                                    "") as string,
-                                );
-                                const segOriginAirport = String(segOriginData?.name ?? "");
-                                const segDest = String(
-                                  segDestData?.iata_code ??
-                                    seg?.destination_iata_code ??
-                                    seg?.destination_iata ??
-                                    seg?.arrival_airport ??
-                                    "",
-                                );
-                                const segDestCity = String(
-                                  (segDestData?.city_name ??
-                                    (segDestData?.city as Record<string, unknown> | undefined)?.name ??
-                                    segDestData?.name ??
-                                    "") as string,
-                                );
-                                const segDestAirport = String(segDestData?.name ?? "");
-                                const marketingCarrier = (seg?.marketing_carrier ?? {}) as Record<string, unknown>;
-                                const operatingCarrier = (seg?.operating_carrier ?? {}) as Record<string, unknown>;
-                                const carrier = (seg?.carrier ?? {}) as Record<string, unknown>;
-                                const segAirline = String(
-                                  marketingCarrier?.name ??
-                                    operatingCarrier?.name ??
-                                    carrier?.name ??
-                                    seg?.airline_name ??
-                                    seg?.airline ??
-                                    item.airline,
-                                );
-                                const segAirlineIata = String(
-                                  marketingCarrier?.iata_code ??
-                                    operatingCarrier?.iata_code ??
-                                    carrier?.iata_code ??
-                                    seg?.airline_iata ??
-                                    "",
-                                );
-                                const segFlightNo = String(
-                                  seg?.marketing_carrier_flight_number ?? seg?.flight_number ?? seg?.number ?? "",
-                                );
-                                const segDuration = String(seg?.duration ?? "");
-                                const nextSeg = segments[idx + 1];
-                                const layoverMinutes = nextSeg
-                                  ? (() => {
-                                      const arrMs = new Date(segArr).getTime();
-                                    const nextSegDep = String(
-                                      nextSeg?.departing_at ??
-                                        nextSeg?.departure_at ??
-                                        nextSeg?.departure_time ??
-                                        nextSeg?.departure ??
-                                        "",
-                                    );
-                                      const nextDepMs = new Date(
-                                      nextSegDep,
-                                      ).getTime();
-                                      if (Number.isNaN(arrMs) || Number.isNaN(nextDepMs)) {
-                                        return null;
-                                      }
-                                      return Math.round((nextDepMs - arrMs) / 60000);
-                                    })()
-                                  : null;
+                          {offerSlices.length > 0 ? (
+                            offerSlices.map((slice, sliceIdx) => {
+                              const sliceInfo = getSliceCardInfo(slice);
+                              const sliceSegments = Array.isArray(slice.segments)
+                                ? (slice.segments as Record<string, unknown>[])
+                                : [];
+                              const sliceDateIso = sliceInfo.departure
+                                ? sliceInfo.departure.slice(0, 10)
+                                : searchInfo?.slices?.[sliceIdx]?.departure_date ?? "";
+                              const sliceDateLabel = sliceInfo.departure
+                                ? new Date(sliceInfo.departure).toLocaleDateString([], {
+                                    weekday: "short",
+                                    day: "numeric",
+                                    month: "short",
+                                  })
+                                : departureDate;
+                              const sliceLabel = isMultiSlice
+                                ? getSliceLabel(tripTypeForCard, sliceIdx, sliceDateIso)
+                                : "";
 
-                                return (
-                                  <div key={`${item.key}-seg-${idx}`}>
-                                    <div className="flex gap-3">
-                                      <div className="flex w-[10px] flex-shrink-0 flex-col items-center">
-                                        <div className="h-2.5 w-2.5 flex-shrink-0 rounded-full bg-[#2563EB]" />
-                                        <div className="w-px flex-1 bg-slate-200" />
-                                      </div>
-                                      <div className="pb-2">
-                                        <p className="text-sm font-bold text-[#0B1F3A]">{formatTime(segDep)}</p>
-                                        {(segOriginCity || segOrigin) && (
-                                          <p className="text-sm text-[#0B1F3A]">{segOriginCity || segOrigin}</p>
-                                        )}
-                                        {segOriginAirport && segOriginAirport !== segOriginCity && (
-                                          <p className="text-xs text-slate-400">
-                                            {segOriginAirport}
-                                            {segOrigin ? ` (${segOrigin})` : ""}
-                                          </p>
-                                        )}
-                                      </div>
+                              return (
+                                <div
+                                  key={`${item.key}-sliceDetail-${sliceIdx}`}
+                                  className={
+                                    sliceIdx > 0
+                                      ? "mt-5 border-t border-dashed border-[#E2EAF4] pt-5"
+                                      : ""
+                                  }
+                                >
+                                  {isMultiSlice && (
+                                    <div className="mb-2 text-[11px] font-semibold tracking-wide text-slate-500">
+                                      {sliceLabel}
                                     </div>
+                                  )}
+                                  <div className="mb-4 flex items-center justify-between rounded-xl bg-[#F8FAFF] px-4 py-3">
+                                    <div>
+                                      <p className="text-sm font-semibold text-[#0B1F3A]">
+                                        {sliceInfo.origin || "-"} → {sliceInfo.destination || "-"}
+                                      </p>
+                                      <p className="mt-0.5 text-xs text-slate-400">
+                                        {sliceDateLabel} · {sliceInfo.stopLabel}
+                                      </p>
+                                    </div>
+                                    <p className="text-sm font-semibold text-[#2563EB]">
+                                      {formatDuration(sliceInfo.duration)}
+                                    </p>
+                                  </div>
 
-                                    <div className="flex gap-3">
-                                      <div className="flex w-[10px] flex-shrink-0 flex-col items-center">
-                                        <div className="h-2 w-2 rounded-full bg-transparent" />
-                                        <div className="w-px flex-1 bg-slate-200" />
+                                  {sliceSegments.length > 0 ? (
+                                    <div className="space-y-0">
+                                      {sliceSegments.map((seg, idx) => {
+                                        const segDep = String(
+                                          seg?.departing_at ?? seg?.departure_at ?? seg?.departure_time ?? seg?.departure ?? "",
+                                        );
+                                        const segArr = String(
+                                          seg?.arriving_at ?? seg?.arrival_at ?? seg?.arrival_time ?? seg?.arrival ?? "",
+                                        );
+                                        const segOriginData = (seg?.origin ?? {}) as Record<string, unknown>;
+                                        const segDestData = (seg?.destination ?? {}) as Record<string, unknown>;
+                                        const segOrigin = String(
+                                          segOriginData?.iata_code ??
+                                            seg?.origin_iata_code ??
+                                            seg?.origin_iata ??
+                                            seg?.departure_airport ??
+                                            "",
+                                        );
+                                        const segOriginCity = String(
+                                          (segOriginData?.city_name ??
+                                            (segOriginData?.city as Record<string, unknown> | undefined)?.name ??
+                                            segOriginData?.name ??
+                                            "") as string,
+                                        );
+                                        const segOriginAirport = String(segOriginData?.name ?? "");
+                                        const segDest = String(
+                                          segDestData?.iata_code ??
+                                            seg?.destination_iata_code ??
+                                            seg?.destination_iata ??
+                                            seg?.arrival_airport ??
+                                            "",
+                                        );
+                                        const segDestCity = String(
+                                          (segDestData?.city_name ??
+                                            (segDestData?.city as Record<string, unknown> | undefined)?.name ??
+                                            segDestData?.name ??
+                                            "") as string,
+                                        );
+                                        const segDestAirport = String(segDestData?.name ?? "");
+                                        const marketingCarrier = (seg?.marketing_carrier ?? {}) as Record<string, unknown>;
+                                        const operatingCarrier = (seg?.operating_carrier ?? {}) as Record<string, unknown>;
+                                        const carrier = (seg?.carrier ?? {}) as Record<string, unknown>;
+                                        const segAirline = String(
+                                          marketingCarrier?.name ??
+                                            operatingCarrier?.name ??
+                                            carrier?.name ??
+                                            seg?.airline_name ??
+                                            seg?.airline ??
+                                            item.airline,
+                                        );
+                                        const segAirlineIata = String(
+                                          marketingCarrier?.iata_code ??
+                                            operatingCarrier?.iata_code ??
+                                            carrier?.iata_code ??
+                                            seg?.airline_iata ??
+                                            "",
+                                        );
+                                        const segFlightNo = String(
+                                          seg?.marketing_carrier_flight_number ?? seg?.flight_number ?? seg?.number ?? "",
+                                        );
+                                        const segDuration = String(seg?.duration ?? "");
+                                        const nextSeg = sliceSegments[idx + 1];
+                                        const layoverMinutes = nextSeg
+                                          ? (() => {
+                                              const arrMs = new Date(segArr).getTime();
+                                              const nextSegDep = String(
+                                                nextSeg?.departing_at ??
+                                                  nextSeg?.departure_at ??
+                                                  nextSeg?.departure_time ??
+                                                  nextSeg?.departure ??
+                                                  "",
+                                              );
+                                              const nextDepMs = new Date(nextSegDep).getTime();
+                                              if (Number.isNaN(arrMs) || Number.isNaN(nextDepMs)) {
+                                                return null;
+                                              }
+                                              return Math.round((nextDepMs - arrMs) / 60000);
+                                            })()
+                                          : null;
+
+                                        return (
+                                          <div key={`${item.key}-slice-${sliceIdx}-seg-${idx}`}>
+                                            <div className="flex gap-3">
+                                              <div className="flex w-[10px] flex-shrink-0 flex-col items-center">
+                                                <div className="h-2.5 w-2.5 flex-shrink-0 rounded-full bg-[#2563EB]" />
+                                                <div className="w-px flex-1 bg-slate-200" />
+                                              </div>
+                                              <div className="pb-2">
+                                                <p className="text-sm font-bold text-[#0B1F3A]">{formatTime(segDep)}</p>
+                                                {(segOriginCity || segOrigin) && (
+                                                  <p className="text-sm text-[#0B1F3A]">{segOriginCity || segOrigin}</p>
+                                                )}
+                                                {segOriginAirport && segOriginAirport !== segOriginCity && (
+                                                  <p className="text-xs text-slate-400">
+                                                    {segOriginAirport}
+                                                    {segOrigin ? ` (${segOrigin})` : ""}
+                                                  </p>
+                                                )}
+                                              </div>
+                                            </div>
+
+                                            <div className="flex gap-3">
+                                              <div className="flex w-[10px] flex-shrink-0 flex-col items-center">
+                                                <div className="h-2 w-2 rounded-full bg-transparent" />
+                                                <div className="w-px flex-1 bg-slate-200" />
+                                              </div>
+                                              <div className="mb-2 flex-1 rounded-xl bg-[#F8FAFF] px-3 py-2.5">
+                                                <div className="mb-1 flex items-center gap-2">
+                                                  {segAirlineIata && (
+                                                    <img
+                                                      src={`https://www.gstatic.com/flights/airline_logos/70px/${segAirlineIata}.png`}
+                                                      width={18}
+                                                      height={18}
+                                                      className="object-contain"
+                                                      alt={segAirline}
+                                                      onError={(event) => {
+                                                        event.currentTarget.style.display = "none";
+                                                      }}
+                                                    />
+                                                  )}
+                                                  <span className="text-xs font-medium text-[#0B1F3A]">{segAirline}</span>
+                                                </div>
+                                                <p className="text-xs text-slate-500">
+                                                  Travel time:{" "}
+                                                  <span className="font-semibold text-[#2563EB]">
+                                                    {formatDuration(segDuration)}
+                                                  </span>
+                                                  {segFlightNo && (
+                                                    <span className="ml-2 text-slate-400">
+                                                      · {segAirlineIata}
+                                                      {segFlightNo}
+                                                    </span>
+                                                  )}
+                                                </p>
+                                              </div>
+                                            </div>
+
+                                            <div className="flex gap-3">
+                                              <div className="flex w-[10px] flex-shrink-0 flex-col items-center">
+                                                <div
+                                                  className={`h-2.5 w-2.5 flex-shrink-0 rounded-full ${
+                                                    layoverMinutes !== null ? "bg-slate-300" : "bg-emerald-500"
+                                                  }`}
+                                                />
+                                                {layoverMinutes !== null ? (
+                                                  <div className="w-px flex-1 bg-slate-200" />
+                                                ) : null}
+                                              </div>
+                                              <div className="pb-2">
+                                                <p className="text-sm font-bold text-[#0B1F3A]">{formatTime(segArr)}</p>
+                                                {(segDestCity || segDest) && (
+                                                  <p className="text-sm text-[#0B1F3A]">{segDestCity || segDest}</p>
+                                                )}
+                                                {segDestAirport && segDestAirport !== segDestCity && (
+                                                  <p className="text-xs text-slate-400">
+                                                    {segDestAirport}
+                                                    {segDest ? ` (${segDest})` : ""}
+                                                  </p>
+                                                )}
+                                              </div>
+                                            </div>
+
+                                            {layoverMinutes !== null && (
+                                              <div className="flex gap-3">
+                                                <div className="flex w-[10px] flex-shrink-0 flex-col items-center">
+                                                  <div className="h-2 w-2 rounded-full bg-transparent" />
+                                                  <div className="w-px flex-1 bg-slate-200" />
+                                                </div>
+                                                <div
+                                                  className={`mb-2 flex-1 rounded-xl border px-3 py-2 ${
+                                                    layoverMinutes > 600
+                                                      ? "border-orange-200 bg-orange-50"
+                                                      : "border-[#E2EAF4] bg-white"
+                                                  }`}
+                                                >
+                                                  <div className="flex items-center gap-2">
+                                                    <svg
+                                                      width="12"
+                                                      height="12"
+                                                      viewBox="0 0 24 24"
+                                                      fill={layoverMinutes > 600 ? "#f97316" : "#94a3b8"}
+                                                    >
+                                                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z" />
+                                                    </svg>
+                                                    <p className="text-xs text-slate-500">
+                                                      {Math.floor(layoverMinutes / 60)}h {layoverMinutes % 60}m layover ·{" "}
+                                                      {segDestAirport || segDestCity || segDest}
+                                                      {layoverMinutes > 600 && (
+                                                        <span className="ml-1 font-semibold text-orange-500">
+                                                          · Overnight
+                                                        </span>
+                                                      )}
+                                                    </p>
+                                                  </div>
+                                                </div>
+                                              </div>
+                                            )}
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                  ) : (
+                                    <div className="flex items-start gap-3">
+                                      <div className="flex flex-col items-center">
+                                        <div className="h-2.5 w-2.5 rounded-full bg-[#2563EB]" />
+                                        <div className="my-1 min-h-[50px] w-px bg-slate-200" />
+                                        <div className="h-2.5 w-2.5 rounded-full bg-slate-400" />
                                       </div>
-                                      <div className="mb-2 flex-1 rounded-xl bg-[#F8FAFF] px-3 py-2.5">
-                                        <div className="mb-1 flex items-center gap-2">
-                                          {segAirlineIata && (
-                                            <img
-                                              src={`https://www.gstatic.com/flights/airline_logos/70px/${segAirlineIata}.png`}
-                                              width={18}
-                                              height={18}
-                                              className="object-contain"
-                                              alt={segAirline}
-                                              onError={(event) => {
-                                                event.currentTarget.style.display = "none";
-                                              }}
-                                            />
-                                          )}
-                                          <span className="text-xs font-medium text-[#0B1F3A]">{segAirline}</span>
+                                      <div className="flex-1 space-y-4">
+                                        <div>
+                                          <p className="text-sm font-bold text-[#0B1F3A]">
+                                            {formatTime(sliceInfo.departure)}
+                                          </p>
+                                          <p className="text-xs text-slate-400">
+                                            {sliceInfo.origin || "-"} · Departure
+                                          </p>
                                         </div>
-                                        <p className="text-xs text-slate-500">
-                                          Travel time:{" "}
-                                          <span className="font-semibold text-[#2563EB]">
-                                            {formatDuration(segDuration)}
-                                          </span>
-                                          {segFlightNo && (
-                                            <span className="ml-2 text-slate-400">
-                                              · {segAirlineIata}
-                                              {segFlightNo}
+                                        <div className="rounded-xl bg-[#F8FAFF] px-3 py-2 text-xs text-slate-500">
+                                          {item.airline} · {formatDuration(sliceInfo.duration)}
+                                          {sliceInfo.stops > 0 && (
+                                            <span className="ml-1 text-orange-500">
+                                              · {sliceInfo.stops} stop{sliceInfo.stops > 1 ? "s" : ""}
                                             </span>
                                           )}
-                                        </p>
-                                      </div>
-                                    </div>
-
-                                    <div className="flex gap-3">
-                                      <div className="flex w-[10px] flex-shrink-0 flex-col items-center">
-                                        <div
-                                          className={`h-2.5 w-2.5 flex-shrink-0 rounded-full ${
-                                            layoverMinutes !== null ? "bg-slate-300" : "bg-emerald-500"
-                                          }`}
-                                        />
-                                        {layoverMinutes !== null ? <div className="w-px flex-1 bg-slate-200" /> : null}
-                                      </div>
-                                      <div className="pb-2">
-                                        <p className="text-sm font-bold text-[#0B1F3A]">{formatTime(segArr)}</p>
-                                        {(segDestCity || segDest) && (
-                                          <p className="text-sm text-[#0B1F3A]">{segDestCity || segDest}</p>
-                                        )}
-                                        {segDestAirport && segDestAirport !== segDestCity && (
-                                          <p className="text-xs text-slate-400">
-                                            {segDestAirport}
-                                            {segDest ? ` (${segDest})` : ""}
+                                        </div>
+                                        <div>
+                                          <p className="text-sm font-bold text-[#0B1F3A]">
+                                            {formatTime(sliceInfo.arrival)}
                                           </p>
-                                        )}
+                                          <p className="text-xs text-slate-400">
+                                            {sliceInfo.destination || "-"} · Arrival
+                                          </p>
+                                        </div>
                                       </div>
                                     </div>
-
-                                    {layoverMinutes !== null && (
-                                      <div className="flex gap-3">
-                                        <div className="flex w-[10px] flex-shrink-0 flex-col items-center">
-                                          <div className="h-2 w-2 rounded-full bg-transparent" />
-                                          <div className="w-px flex-1 bg-slate-200" />
-                                        </div>
-                                        <div
-                                          className={`mb-2 flex-1 rounded-xl border px-3 py-2 ${
-                                            layoverMinutes > 600
-                                              ? "border-orange-200 bg-orange-50"
-                                              : "border-[#E2EAF4] bg-white"
-                                          }`}
-                                        >
-                                          <div className="flex items-center gap-2">
-                                            <svg
-                                              width="12"
-                                              height="12"
-                                              viewBox="0 0 24 24"
-                                              fill={layoverMinutes > 600 ? "#f97316" : "#94a3b8"}
-                                            >
-                                              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z" />
-                                            </svg>
-                                            <p className="text-xs text-slate-500">
-                                              {Math.floor(layoverMinutes / 60)}h {layoverMinutes % 60}m layover ·{" "}
-                                              {segDestAirport || segDestCity || segDest}
-                                              {layoverMinutes > 600 && (
-                                                <span className="ml-1 font-semibold text-orange-500">· Overnight</span>
-                                              )}
-                                            </p>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    )}
-                                  </div>
-                                );
-                              })}
-                            </div>
+                                  )}
+                                </div>
+                              );
+                            })
                           ) : (
                             <div className="flex items-start gap-3">
                               <div className="flex flex-col items-center">
