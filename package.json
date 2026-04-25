@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "i18n-iso-countries": "^7.14.0",
     "next": "14.2.35",
     "qrcode.react": "^4.2.0",
     "react": "^18",

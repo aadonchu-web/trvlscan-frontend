@@ -1,3 +1,5 @@
+import { PassengerData } from "./types";
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 if (!API_BASE_URL) {
@@ -50,9 +52,7 @@ export type SearchFlightsParams = {
 
 export type CreateBookingParams = {
   offerId: string;
-  passengerName: string;
-  passengerEmail: string;
-  passengerDob: string;
+  passenger: PassengerData;
 };
 
 async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
@@ -146,10 +146,8 @@ export async function getPartialFares(params: {
 
 export async function createBooking(params: CreateBookingParams) {
   const payload = {
-    offer_id: params.offerId,
-    passenger_name: params.passengerName,
-    passenger_email: params.passengerEmail,
-    passenger_dob: params.passengerDob,
+    offerId: params.offerId,
+    passenger: params.passenger,
   };
 
   return request("/api/bookings/create", {
