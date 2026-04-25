@@ -186,6 +186,14 @@ function buildDateWindow(baseDateString: string) {
   return result;
 }
 
+function formatFarePenalty(amount: string | null | undefined, currency: string | null | undefined) {
+  if (!amount) return null;
+  const parsed = Number(amount);
+  if (!Number.isFinite(parsed) || parsed === 0) return null;
+  const formatted = parsed.toFixed(2).replace(/\.00$/, "");
+  return currency ? `${formatted} ${currency}` : formatted;
+}
+
 function getPriceInUsdt(totalAmount: number, gbpUsdRate: number | null) {
   if (gbpUsdRate === null) {
     return totalAmount;
@@ -438,6 +446,32 @@ export default function ResultsPage() {
         baggageValue.includes("include") ||
         baggageValue.includes("1pc");
 
+      const rawFareBrand = (offer as Record<string, unknown>).fare_brand_name;
+      const fareBrandName = typeof rawFareBrand === "string" && rawFareBrand.trim() ? rawFareBrand : null;
+      const rawCabin = (offer as Record<string, unknown>).cabin_class_marketing_name;
+      const cabinClassMarketing = typeof rawCabin === "string" && rawCabin.trim() ? rawCabin : null;
+      const rawBaggage = (offer as Record<string, unknown>).baggage_summary;
+      const baggageSummary =
+        rawBaggage && typeof rawBaggage === "object"
+          ? (rawBaggage as {
+              carry_on?: { included?: boolean; quantity?: number };
+              checked?: { included?: boolean; quantity?: number };
+            })
+          : null;
+      const rawChange = (offer as Record<string, unknown>).change_policy;
+      const changePolicy =
+        rawChange && typeof rawChange === "object"
+          ? (rawChange as { allowed?: boolean; penalty_amount?: string | null; penalty_currency?: string | null })
+          : null;
+      const rawRefund = (offer as Record<string, unknown>).refund_policy;
+      const refundPolicy =
+        rawRefund && typeof rawRefund === "object"
+          ? (rawRefund as { allowed?: boolean; penalty_amount?: string | null; penalty_currency?: string | null })
+          : null;
+      const hasFareDetails = Boolean(
+        fareBrandName || cabinClassMarketing || baggageSummary || changePolicy || refundPolicy,
+      );
+
       return {
         offer,
         key: offerId || `${airline}-${departureTime}-${arrivalTime}-${index}`,
@@ -458,6 +492,12 @@ export default function ResultsPage() {
         arrivalMinutes,
         departureDateIso,
         hasCheckedBag,
+        fareBrandName,
+        cabinClassMarketing,
+        baggageSummary,
+        changePolicy,
+        refundPolicy,
+        hasFareDetails,
       };
     });
   }, [activeDate, gbpUsdRate, offers]);
@@ -1267,16 +1307,50 @@ export default function ResultsPage() {
                     month: "short",
                   });
 
+                  // Rich fare layout (chips + conditions row) is applied whenever the
+                  // offer carries any of the new fare detail fields. This gracefully upgrades
+                  // one-way too without needing to branch on currentStep === totalSlices.
+                  const showFareBrandPill =
+                    item.hasFareDetails &&
+                    item.fareBrandName !== null &&
+                    item.fareBrandName !== "None" &&
+                    item.fareBrandName !== item.cabinClassMarketing;
+                  const showCabinPill = item.hasFareDetails && Boolean(item.cabinClassMarketing);
+                  const carryOnIncluded = Boolean(item.baggageSummary?.carry_on?.included);
+                  const checkedQty = Number(item.baggageSummary?.checked?.quantity ?? 0);
+                  const checkedIncluded = Boolean(item.baggageSummary?.checked?.included) && checkedQty > 0;
+                  const changeAllowed = item.changePolicy?.allowed === true;
+                  const changePenalty = formatFarePenalty(
+                    item.changePolicy?.penalty_amount,
+                    item.changePolicy?.penalty_currency,
+                  );
+                  const refundAllowed = item.refundPolicy?.allowed === true;
+                  const refundPenalty = formatFarePenalty(
+                    item.refundPolicy?.penalty_amount,
+                    item.refundPolicy?.penalty_currency,
+                  );
+                  const hasAnyChip = isCheapest || hasNonstop || showCabinPill || showFareBrandPill;
+
                   return (
                     <article
                       key={item.key}
                       className="rounded-2xl border border-[#E2EAF4] bg-white p-4"
                     >
-                      {(isCheapest || hasNonstop) && (
-                        <div className="mb-2 flex gap-2">
+                      {hasAnyChip && (
+                        <div className="mb-2 flex flex-wrap gap-2">
                           {isCheapest && (
                             <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700">
                               Cheapest
+                            </span>
+                          )}
+                          {showCabinPill && (
+                            <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
+                              {item.cabinClassMarketing}
+                            </span>
+                          )}
+                          {showFareBrandPill && (
+                            <span className="rounded-full bg-indigo-100 px-2.5 py-1 text-xs font-semibold text-indigo-700">
+                              {item.fareBrandName}
                             </span>
                           )}
                           {hasNonstop && (
@@ -1354,15 +1428,17 @@ export default function ResultsPage() {
                               </div>
                             );
                           })}
-                          <div className="flex justify-end pt-0.5">
-                            <span
-                              className={`rounded-full px-2 py-0.5 text-xs ${
-                                item.hasCheckedBag ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500"
-                              }`}
-                            >
-                              {item.hasCheckedBag ? "Checked bag incl." : "Carry-on only"}
-                            </span>
-                          </div>
+                          {!item.hasFareDetails && (
+                            <div className="flex justify-end pt-0.5">
+                              <span
+                                className={`rounded-full px-2 py-0.5 text-xs ${
+                                  item.hasCheckedBag ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500"
+                                }`}
+                              >
+                                {item.hasCheckedBag ? "Checked bag incl." : "Carry-on only"}
+                              </span>
+                            </div>
+                          )}
                         </div>
                       ) : (
                         <>
@@ -1387,15 +1463,113 @@ export default function ResultsPage() {
                             <span className="text-xs text-slate-400">
                               {searchInfo?.origin ?? "-"} → {searchInfo?.destination ?? "-"}
                             </span>
-                            <span
-                              className={`rounded-full px-2 py-0.5 text-xs ${
-                                item.hasCheckedBag ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500"
-                              }`}
-                            >
-                              {item.hasCheckedBag ? "Checked bag incl." : "Carry-on only"}
-                            </span>
+                            {!item.hasFareDetails && (
+                              <span
+                                className={`rounded-full px-2 py-0.5 text-xs ${
+                                  item.hasCheckedBag ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500"
+                                }`}
+                              >
+                                {item.hasCheckedBag ? "Checked bag incl." : "Carry-on only"}
+                              </span>
+                            )}
                           </div>
                         </>
+                      )}
+
+                      {item.hasFareDetails && (
+                        <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px]">
+                          {item.baggageSummary && (
+                            <>
+                              <span
+                                className={`inline-flex items-center gap-1 ${
+                                  carryOnIncluded ? "text-emerald-700" : "text-slate-500"
+                                }`}
+                              >
+                                {carryOnIncluded ? (
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                                  </svg>
+                                ) : (
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                                  </svg>
+                                )}
+                                {carryOnIncluded ? "Carry-on included" : "No carry-on"}
+                              </span>
+                              <span className="text-slate-300">·</span>
+                              <span
+                                className={`inline-flex items-center gap-1 ${
+                                  checkedIncluded ? "text-emerald-700" : "text-slate-500"
+                                }`}
+                              >
+                                {checkedIncluded ? (
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                                  </svg>
+                                ) : (
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                                  </svg>
+                                )}
+                                {checkedIncluded
+                                  ? `${checkedQty} checked bag${checkedQty > 1 ? "s" : ""}`
+                                  : "No checked bags"}
+                              </span>
+                            </>
+                          )}
+                          {item.changePolicy && (
+                            <>
+                              {item.baggageSummary && <span className="text-slate-300">·</span>}
+                              <span
+                                className={`inline-flex items-center gap-1 ${
+                                  changeAllowed ? "text-emerald-700" : "text-slate-500"
+                                }`}
+                              >
+                                {changeAllowed ? (
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                                  </svg>
+                                ) : (
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                                  </svg>
+                                )}
+                                {!changeAllowed
+                                  ? "Non-changeable"
+                                  : changePenalty
+                                    ? `Changeable · ${changePenalty} fee`
+                                    : "Changeable"}
+                              </span>
+                            </>
+                          )}
+                          {item.refundPolicy && (
+                            <>
+                              {(item.baggageSummary || item.changePolicy) && (
+                                <span className="text-slate-300">·</span>
+                              )}
+                              <span
+                                className={`inline-flex items-center gap-1 ${
+                                  refundAllowed ? "text-emerald-700" : "text-slate-500"
+                                }`}
+                              >
+                                {refundAllowed ? (
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                                  </svg>
+                                ) : (
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                                  </svg>
+                                )}
+                                {!refundAllowed
+                                  ? "Non-refundable"
+                                  : refundPenalty
+                                    ? `Refundable · ${refundPenalty} fee`
+                                    : "Refundable"}
+                              </span>
+                            </>
+                          )}
+                        </div>
                       )}
 
                       <div className="flex items-center justify-between">

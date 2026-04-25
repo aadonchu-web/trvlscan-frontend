@@ -10,6 +10,35 @@ export type FlightSlice = {
   departure_date: string;
 };
 
+export type BaggageSummary = {
+  carry_on: { included: boolean; quantity: number };
+  checked: { included: boolean; quantity: number };
+};
+
+export type FarePolicy = {
+  allowed: boolean;
+  penalty_amount: string | null;
+  penalty_currency: string | null;
+};
+
+export type SimplifiedOffer = {
+  id?: string;
+  total_amount?: string | number;
+  total_currency?: string;
+  airline?: { name?: string; iata_code?: string } | string;
+  airline_name?: string;
+  departure_time?: string;
+  arrival_time?: string;
+  duration?: string;
+  number_of_stops?: number;
+  slices?: Record<string, unknown>[];
+  fare_brand_name?: string | null;
+  cabin_class_marketing_name?: string | null;
+  baggage_summary?: BaggageSummary;
+  change_policy?: FarePolicy;
+  refund_policy?: FarePolicy;
+};
+
 export type SearchFlightsParams = {
   origin?: string;
   destination?: string;
