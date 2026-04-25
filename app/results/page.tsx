@@ -2,7 +2,13 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { searchFlights, type FlightSlice } from "@/lib/api";
+import {
+  searchFlights,
+  partialSearchFlights,
+  selectPartialOffer,
+  getPartialFares,
+  type FlightSlice,
+} from "@/lib/api";
 
 type OfferRecord = Record<string, unknown>;
 
@@ -218,7 +224,15 @@ export default function ResultsPage() {
     returnDate?: string;
     passengers: number;
     slices?: FlightSlice[];
+    cabinClass: string;
   } | null>(null);
+  const [partialOfferRequestId, setPartialOfferRequestId] = useState<string | null>(null);
+  const [totalSlices, setTotalSlices] = useState<number>(0);
+  const [currentStep, setCurrentStep] = useState<number>(0);
+  const [selectedPartialOfferIds, setSelectedPartialOfferIds] = useState<string[]>([]);
+  const [selectedPartialOffers, setSelectedPartialOffers] = useState<OfferRecord[]>([]);
+  const [stepLoading, setStepLoading] = useState<boolean>(false);
+  const [stepError, setStepError] = useState<string | null>(null);
   const [gbpUsdRate, setGbpUsdRate] = useState<number | null>(null);
   const [isRateLoading, setIsRateLoading] = useState(true);
   const [selectingOfferId, setSelectingOfferId] = useState<string | null>(null);
@@ -279,6 +293,8 @@ export default function ResultsPage() {
       return;
     }
 
+    const cabinClass = parsedParams.cabin_class || parsedParams.cabinClass || "economy";
+
     setSearchInfo({
       tripType,
       origin,
@@ -287,40 +303,66 @@ export default function ResultsPage() {
       returnDate: parsedParams.returnDate,
       passengers,
       slices,
+      cabinClass,
     });
     setSelectedDate(departure_date);
 
     let isCancelled = false;
     setIsLoadingOffers(true);
     setOffersError(null);
+    setPartialOfferRequestId(null);
+    setTotalSlices(0);
+    setCurrentStep(0);
+    setSelectedPartialOfferIds([]);
+    setSelectedPartialOffers([]);
+    setStepError(null);
+    setStepLoading(false);
 
-    const searchPromise =
-      slices && slices.length > 0
-        ? searchFlights({
-            slices,
-            passengers,
-            cabin_class: parsedParams.cabin_class || parsedParams.cabinClass || "economy",
-          })
-        : searchFlights({ origin, destination, departure_date, passengers });
+    const isMultiStep = tripType === "roundtrip" || tripType === "multicity";
 
-    searchPromise
-      .then((response) => {
-        if (isCancelled) return;
-        const list = Array.isArray(response)
-          ? (response as OfferRecord[])
-          : ((response as { offers?: OfferRecord[] })?.offers ?? []);
-        setOffers(list);
-        setIsLoadingOffers(false);
-      })
-      .catch((error: unknown) => {
-        if (isCancelled) return;
-        const message = error instanceof Error && error.message
-          ? error.message
-          : "We couldn't reach the flight search service. Please try again.";
-        setOffers([]);
-        setOffersError(message);
-        setIsLoadingOffers(false);
-      });
+    if (isMultiStep && slices && slices.length > 0) {
+      partialSearchFlights({ slices, passengers, cabin_class: cabinClass })
+        .then((response) => {
+          if (isCancelled) return;
+          setPartialOfferRequestId(response.partial_offer_request_id ?? null);
+          setTotalSlices(response.total_slices ?? slices.length);
+          setOffers((response.offers as OfferRecord[]) ?? []);
+          setIsLoadingOffers(false);
+        })
+        .catch((error: unknown) => {
+          if (isCancelled) return;
+          const message = error instanceof Error && error.message
+            ? error.message
+            : "We couldn't reach the flight search service. Please try again.";
+          setOffers([]);
+          setOffersError(message);
+          setIsLoadingOffers(false);
+        });
+    } else {
+      const searchPromise =
+        slices && slices.length > 0
+          ? searchFlights({ slices, passengers, cabin_class: cabinClass })
+          : searchFlights({ origin, destination, departure_date, passengers });
+
+      searchPromise
+        .then((response) => {
+          if (isCancelled) return;
+          const list = Array.isArray(response)
+            ? (response as OfferRecord[])
+            : ((response as { offers?: OfferRecord[] })?.offers ?? []);
+          setOffers(list);
+          setIsLoadingOffers(false);
+        })
+        .catch((error: unknown) => {
+          if (isCancelled) return;
+          const message = error instanceof Error && error.message
+            ? error.message
+            : "We couldn't reach the flight search service. Please try again.";
+          setOffers([]);
+          setOffersError(message);
+          setIsLoadingOffers(false);
+        });
+    }
 
     return () => {
       isCancelled = true;
@@ -520,8 +562,9 @@ export default function ResultsPage() {
   }, [normalizedOffers]);
 
   const filteredOffers = useMemo(() => {
+    const tripType = searchInfo?.tripType ?? "oneway";
     return normalizedOffers.filter((item) => {
-      if (activeDate && item.departureDateIso !== activeDate) {
+      if (tripType === "oneway" && activeDate && item.departureDateIso !== activeDate) {
         return false;
       }
       if (!selectedStops.includes(item.stops)) {
@@ -558,6 +601,7 @@ export default function ResultsPage() {
     maxPriceFilter,
     normalizedOffers,
     filterMaxArr,
+    searchInfo?.tripType,
     selectedAirlines,
     selectedStops,
   ]);
@@ -609,9 +653,109 @@ export default function ResultsPage() {
       return;
     }
 
+    const tripType = searchInfo?.tripType ?? "oneway";
+    const isMultiStep = tripType === "roundtrip" || tripType === "multicity";
+
+    if (!isMultiStep || currentStep === totalSlices) {
+      setSelectingOfferId(offerId);
+      sessionStorage.setItem("selectedOffer", JSON.stringify(offer));
+      router.push("/flight-summary");
+      return;
+    }
+
+    if (!partialOfferRequestId) return;
+
+    const newIds = [...selectedPartialOfferIds, offerId];
+    const newOffers = [...selectedPartialOffers, offer];
+    setSelectedPartialOfferIds(newIds);
+    setSelectedPartialOffers(newOffers);
     setSelectingOfferId(offerId);
-    sessionStorage.setItem("selectedOffer", JSON.stringify(offer));
-    router.push("/flight-summary");
+    setStepLoading(true);
+    setStepError(null);
+
+    const nextCall =
+      newIds.length < totalSlices
+        ? selectPartialOffer({
+            partial_offer_request_id: partialOfferRequestId,
+            selected_partial_offer_ids: newIds,
+          }).then((r) => r.offers as OfferRecord[])
+        : getPartialFares({
+            partial_offer_request_id: partialOfferRequestId,
+            selected_partial_offer_ids: newIds,
+          }).then((r) => r.offers as OfferRecord[]);
+
+    nextCall
+      .then((nextOffers) => {
+        setOffers(nextOffers ?? []);
+        setCurrentStep(newIds.length);
+        setStepLoading(false);
+        setSelectingOfferId(null);
+      })
+      .catch((error: unknown) => {
+        const message = error instanceof Error && error.message
+          ? error.message
+          : "Couldn't load the next leg. Please try again.";
+        setStepError(message);
+        setStepLoading(false);
+        setSelectingOfferId(null);
+        // Roll back the speculative append so retry works against the prior step
+        setSelectedPartialOfferIds(selectedPartialOfferIds);
+        setSelectedPartialOffers(selectedPartialOffers);
+      });
+  };
+
+  const handleChangeStep = (index: number) => {
+    if (!searchInfo) return;
+    const truncatedIds = selectedPartialOfferIds.slice(0, index);
+    const truncatedOffers = selectedPartialOffers.slice(0, index);
+    setSelectedPartialOfferIds(truncatedIds);
+    setSelectedPartialOffers(truncatedOffers);
+    setCurrentStep(index);
+    setStepLoading(true);
+    setStepError(null);
+
+    if (index === 0) {
+      partialSearchFlights({
+        slices: searchInfo.slices ?? [],
+        passengers: searchInfo.passengers,
+        cabin_class: searchInfo.cabinClass,
+      })
+        .then((response) => {
+          setPartialOfferRequestId(response.partial_offer_request_id ?? null);
+          setTotalSlices(response.total_slices ?? totalSlices);
+          setOffers((response.offers as OfferRecord[]) ?? []);
+          setStepLoading(false);
+        })
+        .catch((error: unknown) => {
+          const message = error instanceof Error && error.message
+            ? error.message
+            : "Couldn't reload flights. Please try again.";
+          setStepError(message);
+          setStepLoading(false);
+        });
+      return;
+    }
+
+    if (!partialOfferRequestId) {
+      setStepLoading(false);
+      return;
+    }
+
+    selectPartialOffer({
+      partial_offer_request_id: partialOfferRequestId,
+      selected_partial_offer_ids: truncatedIds,
+    })
+      .then((response) => {
+        setOffers((response.offers as OfferRecord[]) ?? []);
+        setStepLoading(false);
+      })
+      .catch((error: unknown) => {
+        const message = error instanceof Error && error.message
+          ? error.message
+          : "Couldn't reload flights. Please try again.";
+        setStepError(message);
+        setStepLoading(false);
+      });
   };
 
   const minPriceForStop = (stop: number) => stopMinPriceMap.get(stop);
@@ -823,6 +967,109 @@ export default function ResultsPage() {
         </div>
         )}
 
+        {(searchInfo?.tripType === "roundtrip" || searchInfo?.tripType === "multicity") &&
+          selectedPartialOffers.length > 0 && (
+            <div className="space-y-2">
+              {selectedPartialOffers.map((selOffer, idx) => {
+                const sAirline = readValue(selOffer, [
+                  "airline.name",
+                  "airline_name",
+                  "airline",
+                ], "Airline");
+                const sDeparture = readValue(selOffer, [
+                  "departure_time",
+                  "outbound.departure_time",
+                ]);
+                const sArrival = readValue(selOffer, [
+                  "arrival_time",
+                  "outbound.arrival_time",
+                ]);
+                const sDuration = readValue(selOffer, ["duration"]);
+                const sStopsRaw = readValue(selOffer, ["number_of_stops", "stops"], "0");
+                const sStops = Math.max(0, Number(sStopsRaw) || 0);
+                const sStopLabel = sStops === 0 ? "Nonstop" : `${sStops} stop${sStops > 1 ? "s" : ""}`;
+                const sliceObj = ((selOffer as Record<string, unknown>).slice ?? {}) as Record<string, unknown>;
+                const sliceOriginObj = (sliceObj.origin ?? {}) as Record<string, unknown>;
+                const sliceDestObj = (sliceObj.destination ?? {}) as Record<string, unknown>;
+                let sOrigin = String(sliceOriginObj.iata_code ?? "");
+                let sDest = String(sliceDestObj.iata_code ?? "");
+                if (!sOrigin || !sDest) {
+                  const sliceList = Array.isArray((selOffer as Record<string, unknown>).slices)
+                    ? ((selOffer as Record<string, unknown>).slices as Record<string, unknown>[])
+                    : [];
+                  if (sliceList[0]) {
+                    const info = getSliceCardInfo(sliceList[0]);
+                    if (!sOrigin) sOrigin = info.origin;
+                    if (!sDest) sDest = info.destination;
+                  }
+                }
+                if (!sOrigin) sOrigin = searchInfo?.slices?.[idx]?.origin ?? "";
+                if (!sDest) sDest = searchInfo?.slices?.[idx]?.destination ?? "";
+
+                const label =
+                  searchInfo?.tripType === "roundtrip"
+                    ? idx === 0
+                      ? "Outbound flight"
+                      : "Return flight"
+                    : `Flight ${idx + 1}`;
+
+                return (
+                  <div
+                    key={`locked-${idx}`}
+                    className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3"
+                  >
+                    <div className="mb-2 flex items-center justify-between">
+                      <span className="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
+                        {label}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleChangeStep(idx)}
+                        disabled={stepLoading}
+                        className="text-xs font-semibold text-[#2563EB] disabled:opacity-50"
+                      >
+                        Change
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm">
+                      <span className="font-medium text-[#0B1F3A]">{sAirline}</span>
+                      <span className="text-slate-300">·</span>
+                      <span className="font-bold text-[#0B1F3A]">{formatTime(sDeparture)}</span>
+                      <span className="text-slate-500">{sOrigin || "-"}</span>
+                      <span className="text-slate-300">→</span>
+                      <span className="font-bold text-[#0B1F3A]">{formatTime(sArrival)}</span>
+                      <span className="text-slate-500">{sDest || "-"}</span>
+                      <span className="text-xs text-slate-400">{formatDuration(sDuration)}</span>
+                      <span className={`text-xs ${sStops === 0 ? "text-emerald-600" : "text-slate-400"}`}>
+                        {sStopLabel}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+        {stepError && (
+          <div className="rounded-2xl border border-rose-200 bg-white p-4">
+            <p className="text-sm font-semibold text-[#0B1F3A]">Something went wrong</p>
+            <p className="mt-1 text-sm text-slate-500">{stepError}</p>
+            <button
+              type="button"
+              onClick={() => {
+                if (selectedPartialOfferIds.length === 0) {
+                  setRetryToken((n) => n + 1);
+                } else {
+                  handleChangeStep(selectedPartialOfferIds.length);
+                }
+              }}
+              className="mt-3 h-10 rounded-xl bg-[#2563EB] px-4 text-sm font-semibold text-white"
+            >
+              Try again
+            </button>
+          </div>
+        )}
+
         <div className="flex items-start gap-4">
           <aside className="hidden w-56 flex-shrink-0 rounded-2xl border border-[#E2EAF4] bg-white p-4 lg:sticky lg:top-6 lg:block">
             <div>
@@ -933,6 +1180,29 @@ export default function ResultsPage() {
           </aside>
 
           <section className="min-w-0 flex-1">
+            {(searchInfo?.tripType === "roundtrip" || searchInfo?.tripType === "multicity") && (() => {
+              const tt = searchInfo.tripType;
+              const isFareStep = currentStep === totalSlices && totalSlices > 0;
+              const stepSlice = searchInfo.slices?.[currentStep];
+              const heading = isFareStep
+                ? "Choose your fare"
+                : currentStep === 0
+                ? "Choose departing flight"
+                : tt === "roundtrip" && currentStep === 1
+                ? "Choose returning flight"
+                : `Choose flight ${currentStep + 1}`;
+              const subheading = isFareStep
+                ? "Final price for the entire trip"
+                : `${sortedOffers.length} flight${sortedOffers.length === 1 ? "" : "s"}${
+                    stepSlice ? ` from ${stepSlice.origin} to ${stepSlice.destination}` : ""
+                  }`;
+              return (
+                <div className="mb-3">
+                  <h2 className="text-lg font-semibold text-[#0B1F3A]">{heading}</h2>
+                  <p className="text-sm text-slate-500">{subheading}</p>
+                </div>
+              );
+            })()}
             <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
               <div className="flex flex-wrap gap-2">
                 {sortOptions.map((option) => {
@@ -958,7 +1228,16 @@ export default function ResultsPage() {
               <p className="text-sm text-slate-500">{sortedOffers.length} flights found</p>
             </div>
 
-            {sortedOffers.length === 0 ? (
+            {stepLoading ? (
+              <div className="space-y-3">
+                {[0, 1, 2].map((placeholder) => (
+                  <div
+                    key={`step-skeleton-${placeholder}`}
+                    className="h-32 w-full animate-pulse rounded-2xl bg-slate-100"
+                  />
+                ))}
+              </div>
+            ) : sortedOffers.length === 0 ? (
               <div className="rounded-2xl border border-[#E2EAF4] bg-white p-6 text-sm text-slate-500">
                 No flights found
               </div>

@@ -59,6 +59,62 @@ export async function searchFlights(params: SearchFlightsParams) {
   });
 }
 
+export type PartialSearchParams = {
+  slices: FlightSlice[];
+  passengers: number;
+  cabin_class?: string;
+};
+
+export type PartialSearchResponse = {
+  partial_offer_request_id: string;
+  total_slices: number;
+  offers: Record<string, unknown>[];
+};
+
+export type SelectPartialOfferResponse = {
+  done: boolean;
+  total_slices: number;
+  selected_count: number;
+  offers: Record<string, unknown>[];
+};
+
+export type PartialFaresResponse = {
+  offers: Record<string, unknown>[];
+};
+
+export async function partialSearchFlights(params: PartialSearchParams): Promise<PartialSearchResponse> {
+  const payload: Record<string, unknown> = {
+    slices: params.slices,
+    passengers: params.passengers,
+  };
+  if (params.cabin_class) payload.cabin_class = params.cabin_class;
+
+  return request<PartialSearchResponse>("/api/flights/partial-search", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function selectPartialOffer(params: {
+  partial_offer_request_id: string;
+  selected_partial_offer_ids: string[];
+}): Promise<SelectPartialOfferResponse> {
+  return request<SelectPartialOfferResponse>("/api/flights/partial-search/select", {
+    method: "POST",
+    body: JSON.stringify(params),
+  });
+}
+
+export async function getPartialFares(params: {
+  partial_offer_request_id: string;
+  selected_partial_offer_ids: string[];
+}): Promise<PartialFaresResponse> {
+  return request<PartialFaresResponse>("/api/flights/partial-search/fares", {
+    method: "POST",
+    body: JSON.stringify(params),
+  });
+}
+
 export async function createBooking(params: CreateBookingParams) {
   const payload = {
     offer_id: params.offerId,

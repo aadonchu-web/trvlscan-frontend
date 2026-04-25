@@ -17,6 +17,25 @@ Next.js 14 flight booking UI with USDT crypto payment.
 - app/passenger/page.tsx — passenger details form
 - app/booking/[id]/page.tsx — payment page (QR, timer, copy wallet)
 
+## Multi-step search (round trip / multi city)
+
+Round trip and multi city use Duffel's partial offer flow — pick one slice at a time. One Way still uses the single-shot search.
+
+- `POST /api/flights/search` — One Way only. Returns full `SimplifiedOffer[]`.
+- `POST /api/flights/partial-search` — start partial flow.
+  - req: `{ slices, passengers, cabin_class }`
+  - res: `{ partial_offer_request_id, total_slices, offers: SimplifiedPartialOffer[] }` (offers for slice 1)
+- `POST /api/flights/partial-search/select` — pick slice(s), get next slice's offers.
+  - req: `{ partial_offer_request_id, selected_partial_offer_ids }`
+  - res: `{ done: false, total_slices, selected_count, offers }`
+- `POST /api/flights/partial-search/fares` — after final slice, fetch bookable fares.
+  - req: `{ partial_offer_request_id, selected_partial_offer_ids }`
+  - res: `{ offers: SimplifiedOffer[] }`
+
+Client functions in `lib/api.ts`: `searchFlights`, `partialSearchFlights`, `selectPartialOffer`, `getPartialFares`.
+
+`SimplifiedPartialOffer` matches `SimplifiedOffer` plus a top-level `slice: { origin, destination }` and `partial: true` flag.
+
 ## Design Preferences
 - Fonts: Plus Jakarta Sans, Inter
 - Light color theme, compact forms
