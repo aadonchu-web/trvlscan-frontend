@@ -1,0 +1,863 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>TRVLscan — Fly anywhere. Pay in crypto.</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          display: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+          sans: ['Inter', 'system-ui', 'sans-serif'],
+          mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
+        },
+        colors: {
+          ink: {
+            DEFAULT: '#0A1B3D',   /* Navy = headlines + body */
+            soft:    '#1A2B4D',   /* navy-soft */
+            muted:   '#6B7280',
+            faint:   '#9CA3AF',
+          },
+          surface: {
+            DEFAULT: '#F7F7F8',
+            sub:     '#FFFFFF',
+            line:    '#E5E7EB',
+            line2:   '#EEF0F3',
+          },
+          trvl: {
+            DEFAULT: '#1B4FFF',   /* Primary CTA */
+            dark:    '#0033C1',   /* hover */
+            light:   '#4F7BFF',   /* gradients */
+            50:      '#EEF2FF',
+            100:     '#DDE5FF',
+          },
+          usdt: {
+            DEFAULT: '#0FA958',
+            light:   '#E6F7EE',
+            dark:    '#087A3F',
+          },
+        },
+        boxShadow: {
+          'card':  '0 1px 0 rgba(10,27,61,0.04), 0 12px 28px -16px rgba(10,27,61,0.18)',
+          'lift':  '0 1px 0 rgba(10,27,61,0.05), 0 22px 44px -22px rgba(10,27,61,0.22)',
+          'pop':   '0 1px 0 rgba(27,79,255,0.10), 0 18px 32px -16px rgba(27,79,255,0.45)',
+        },
+      },
+    },
+  };
+</script>
+<style>
+  :root { color-scheme: light; }
+  html, body { background: #F7F7F8; }
+  body { font-family: 'Inter', system-ui, sans-serif; color: #0A1B3D; -webkit-font-smoothing: antialiased; }
+
+  /* Subtle navy-tinted grain — purely CSS, no images */
+  .grain::before {
+    content: "";
+    position: absolute; inset: 0;
+    background-image:
+      radial-gradient(rgba(10,27,61,0.035) 1px, transparent 1px),
+      radial-gradient(rgba(10,27,61,0.025) 1px, transparent 1px);
+    background-size: 3px 3px, 7px 7px;
+    background-position: 0 0, 1px 2px;
+    mix-blend-mode: multiply;
+    pointer-events: none;
+    opacity: 0.5;
+  }
+
+  /* Editorial horizon — TRVL-blue twilight "view from a window" */
+  .horizon {
+    background:
+      radial-gradient(120% 60% at 50% 110%, #0A1B3D 0%, transparent 55%),
+      linear-gradient(180deg, #1A2B4D 0%, #0033C1 28%, #1B4FFF 56%, #4F7BFF 82%, #0A1B3D 100%);
+  }
+  .horizon-sun {
+    background: radial-gradient(closest-side, #DDE5FF 0%, #4F7BFF 50%, transparent 72%);
+  }
+
+  /* Destination card "skyline" — geometric shapes, not stock photos */
+  .skyline { position: relative; overflow: hidden; }
+  .skyline::after {
+    content: "";
+    position: absolute; left: 0; right: 0; bottom: 0; height: 38%;
+    background: linear-gradient(180deg, transparent, rgba(10,27,61,0.22));
+    pointer-events: none;
+  }
+
+  /* USDT Green underline accent for the second hero phrase (brandbook rule) */
+  .accent-mark {
+    background: linear-gradient(180deg, transparent 60%, rgba(15,169,88,0.32) 60%, rgba(15,169,88,0.32) 92%, transparent 92%);
+    padding: 0 0.05em;
+  }
+
+  /* Native details accordion polish */
+  details > summary { list-style: none; cursor: pointer; }
+  details > summary::-webkit-details-marker { display: none; }
+  details[open] .chev { transform: rotate(45deg); }
+  .chev { transition: transform 200ms ease; }
+
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+
+  /* Focus ring — TRVL Blue, brandbook standard */
+  :focus-visible { outline: 2px solid #1B4FFF; outline-offset: 2px; border-radius: 8px; }
+
+  /* Tiny boarding-pass dashed divider (paper-tearaway dots in surface color) */
+  .perf {
+    background-image: radial-gradient(circle at 6px 50%, #F7F7F8 5px, transparent 5.5px);
+    background-size: 14px 12px;
+    background-repeat: repeat-x;
+    background-position: -7px 0;
+  }
+
+  /* Mono caption */
+  .label-mono {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #6B7280;
+  }
+</style>
+</head>
+<body class="font-sans text-ink antialiased">
+
+<!-- ═════════════ NAV ═════════════ -->
+<header class="relative z-30">
+  <div class="mx-auto max-w-7xl px-6 lg:px-10 pt-6">
+    <nav class="flex items-center justify-between rounded-2xl bg-white/80 backdrop-blur border border-surface-line px-4 py-3">
+      <a href="#" class="flex items-center gap-2 group" aria-label="TRVLscan home">
+        <span class="grid place-items-center w-9 h-9 rounded-xl bg-ink text-white">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 11.5 21 4l-7.5 18-2.4-7.7L3 11.5Z"/>
+          </svg>
+        </span>
+        <span class="font-display font-semibold text-[19px] tracking-tight">TRVLscan</span>
+      </a>
+      <ul class="hidden md:flex items-center gap-7 text-[14px] text-ink-soft">
+        <li><a href="#search" class="hover:text-ink transition-colors">Search flights</a></li>
+        <li><a href="#how" class="hover:text-ink transition-colors">How it works</a></li>
+        <li><a href="#destinations" class="hover:text-ink transition-colors">Destinations</a></li>
+        <li><a href="#faq" class="hover:text-ink transition-colors">Help</a></li>
+      </ul>
+      <div class="flex items-center gap-2">
+        <a href="#" class="hidden sm:inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[13.5px] text-ink-soft hover:text-ink transition-colors">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>
+          </svg>
+          EN · USDT
+        </a>
+        <a href="#" class="inline-flex items-center gap-2 rounded-xl bg-ink text-white px-4 py-2.5 text-[13.5px] font-medium hover:bg-ink-soft transition-colors cursor-pointer">
+          My bookings
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<!-- ═════════════ HERO ═════════════ -->
+<section class="relative overflow-hidden">
+  <div class="mx-auto max-w-7xl px-6 lg:px-10 pt-14 pb-10 lg:pt-20 lg:pb-16 grid lg:grid-cols-12 gap-10 items-end">
+
+    <!-- Left: headline column -->
+    <div class="lg:col-span-7 relative z-10">
+      <div class="inline-flex items-center gap-2 rounded-full border border-surface-line bg-white/70 px-3 py-1.5 text-[12.5px] text-ink-soft">
+        <span class="inline-block w-1.5 h-1.5 rounded-full bg-usdt"></span>
+        Live rates · 38 airlines · Settle in USDT &amp; USDC
+      </div>
+      <h1 class="font-display font-extrabold mt-5 leading-[0.96] tracking-[-0.035em]
+                 text-[56px] sm:text-[72px] lg:text-[92px]">
+        <span class="text-ink">Fly anywhere.</span><br/>
+        <span class="text-trvl">Pay in <span class="accent-mark">crypto</span>.</span>
+      </h1>
+      <p class="mt-6 max-w-xl text-[17px] leading-[1.6] text-ink-muted">
+        Compare every flight in seconds. Lock the price, send a stablecoin payment from any wallet, and we issue the ticket — no card, no chargeback drama, no surprise FX.
+      </p>
+      <div class="mt-7 flex flex-wrap items-center gap-3">
+        <a href="#search" class="inline-flex items-center gap-2 rounded-xl bg-trvl text-white px-5 py-3.5 text-[14.5px] font-semibold shadow-pop hover:bg-trvl-dark transition-colors cursor-pointer">
+          Search flights
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </a>
+        <a href="#how" class="inline-flex items-center gap-2 rounded-xl border border-surface-line bg-white px-5 py-3.5 text-[14.5px] font-medium text-ink hover:bg-surface transition-colors cursor-pointer">
+          How it works
+        </a>
+        <span class="inline-flex items-center gap-1.5 text-[13px] text-ink-faint pl-1">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-7 8-13a8 8 0 0 0-16 0c0 6 8 13 8 13Z"/><circle cx="12" cy="9" r="2.5"/></svg>
+          Tickets issued from London · serving 190 countries
+        </span>
+      </div>
+    </div>
+
+    <!-- Right: editorial horizon "window" -->
+    <div class="lg:col-span-5 relative">
+      <div class="relative aspect-[5/6] sm:aspect-[6/5] lg:aspect-[5/6] rounded-[28px] overflow-hidden horizon shadow-lift">
+        <!-- sun / glow -->
+        <div class="absolute inset-0">
+          <div class="absolute left-1/2 -translate-x-1/2 top-[44%] w-[58%] aspect-square rounded-full horizon-sun blur-[1px]"></div>
+        </div>
+        <!-- thin clouds -->
+        <div class="absolute inset-x-0 top-[26%] h-[2px] bg-white/22"></div>
+        <div class="absolute inset-x-12 top-[34%] h-[1px] bg-white/15"></div>
+        <!-- silhouetted plane -->
+        <svg class="absolute right-7 top-7 w-16 h-16 text-white/85" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M2 14 22 9l-4 5 2 6-3-1-2-3-6 4-1-2 4-3-3-1Z"/>
+        </svg>
+        <!-- ticker overlay -->
+        <div class="absolute left-5 right-5 bottom-5 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/15 p-4 text-white">
+          <div class="flex items-center justify-between text-[11.5px] uppercase tracking-[0.18em] text-white/75">
+            <span>Live · LHR → BKK</span>
+            <span class="font-mono">14:32 GMT</span>
+          </div>
+          <div class="mt-2.5 flex items-end justify-between">
+            <div>
+              <div class="font-display text-[28px] font-bold leading-none">£472 <span class="text-white/70 text-[14px] font-sans font-normal">≈</span></div>
+              <div class="font-mono text-[18px] mt-1 text-white">600.74 USDT</div>
+            </div>
+            <div class="text-right text-[12px] text-white/85 leading-tight">
+              Lock for 12&nbsp;min<br/>
+              <span class="font-mono">1 GBP = 1.273 USD</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- floating boarding-pass card -->
+      <div class="hidden md:block absolute -left-10 -bottom-10 w-[270px] rotate-[-4deg]">
+        <div class="rounded-2xl bg-white border border-surface-line shadow-card overflow-hidden">
+          <div class="px-4 pt-4 pb-3">
+            <div class="text-[10.5px] uppercase tracking-[0.18em] text-ink-faint">Boarding pass · paid in USDT</div>
+            <div class="mt-2 flex items-center justify-between">
+              <div>
+                <div class="font-display text-[26px] font-extrabold leading-none">LHR</div>
+                <div class="text-[11px] text-ink-faint mt-1">London</div>
+              </div>
+              <svg class="w-7 h-7 text-ink-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+              <div class="text-right">
+                <div class="font-display text-[26px] font-extrabold leading-none">BKK</div>
+                <div class="text-[11px] text-ink-faint mt-1">Bangkok</div>
+              </div>
+            </div>
+          </div>
+          <div class="perf h-3 bg-trvl-50"></div>
+          <div class="px-4 py-3 grid grid-cols-3 text-[11px]">
+            <div><div class="text-ink-faint">Date</div><div class="font-mono mt-0.5">12 May</div></div>
+            <div><div class="text-ink-faint">Seat</div><div class="font-mono mt-0.5">14A</div></div>
+            <div><div class="text-ink-faint">Tx</div><div class="font-mono mt-0.5 truncate">Tron…9f4</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- subtle background blobs (re-tinted to TRVL Blue) -->
+  <div class="pointer-events-none absolute -top-32 -right-32 w-[520px] h-[520px] rounded-full bg-trvl-100 blur-3xl opacity-70"></div>
+  <div class="pointer-events-none absolute -bottom-40 -left-40 w-[460px] h-[460px] rounded-full bg-trvl-50 blur-3xl opacity-90"></div>
+</section>
+
+<!-- ═════════════ SEARCH FORM ═════════════ -->
+<section id="search" class="relative -mt-2 lg:-mt-6">
+  <div class="mx-auto max-w-7xl px-6 lg:px-10">
+    <div class="relative rounded-3xl bg-white border border-surface-line shadow-lift p-5 sm:p-6 lg:p-7">
+      <!-- trip-type tabs -->
+      <div class="flex items-center justify-between flex-wrap gap-3">
+        <div role="tablist" aria-label="Trip type" class="inline-flex items-center rounded-xl bg-surface p-1 text-[13.5px] border border-surface-line">
+          <button type="button" role="tab" aria-selected="true" class="rounded-lg px-3.5 py-1.5 bg-white text-ink shadow-card font-medium cursor-pointer">Round trip</button>
+          <button type="button" role="tab" aria-selected="false" class="rounded-lg px-3.5 py-1.5 text-ink-soft hover:text-ink cursor-pointer">One way</button>
+          <button type="button" role="tab" aria-selected="false" class="rounded-lg px-3.5 py-1.5 text-ink-soft hover:text-ink cursor-pointer">Multi-city</button>
+        </div>
+        <div class="flex items-center gap-3 text-[13px] text-ink-muted">
+          <button type="button" class="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 hover:text-ink transition-colors cursor-pointer">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h18M3 12h18M3 17h12"/></svg>
+            Economy
+          </button>
+          <span class="w-px h-4 bg-surface-line"></span>
+          <button type="button" class="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 hover:text-ink transition-colors cursor-pointer">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0M16 11a3 3 0 1 0 0-6M21 20a5 5 0 0 0-3-4.6"/></svg>
+            1 adult
+          </button>
+        </div>
+      </div>
+
+      <!-- fields -->
+      <div class="mt-5 grid grid-cols-1 md:grid-cols-12 gap-3">
+        <!-- From / To grouped -->
+        <div class="md:col-span-5 grid grid-cols-2 gap-3 relative">
+          <label class="block rounded-2xl bg-surface border border-surface-line px-4 py-3 cursor-text">
+            <span class="block text-[11px] uppercase tracking-[0.14em] text-ink-faint">From</span>
+            <span class="font-display font-semibold text-[20px] text-ink leading-tight mt-0.5 block">London</span>
+            <span class="text-[12px] text-ink-muted">LHR · Heathrow</span>
+          </label>
+          <label class="block rounded-2xl bg-surface border border-surface-line px-4 py-3 cursor-text">
+            <span class="block text-[11px] uppercase tracking-[0.14em] text-ink-faint">To</span>
+            <span class="font-display font-semibold text-[20px] text-ink leading-tight mt-0.5 block">Bangkok</span>
+            <span class="text-[12px] text-ink-muted">BKK · Suvarnabhumi</span>
+          </label>
+          <button type="button" aria-label="Swap origin and destination" class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 grid place-items-center w-8 h-8 rounded-full bg-white border border-surface-line shadow-card text-ink hover:bg-surface transition-colors cursor-pointer">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4 4 7l3 3M4 7h13a4 4 0 0 1 0 8M17 20l3-3-3-3M20 17H7a4 4 0 0 1 0-8"/></svg>
+          </button>
+        </div>
+
+        <label class="md:col-span-3 block rounded-2xl bg-surface border border-surface-line px-4 py-3 cursor-text">
+          <span class="block text-[11px] uppercase tracking-[0.14em] text-ink-faint">Dates</span>
+          <span class="font-display font-semibold text-[20px] text-ink leading-tight mt-0.5 block">12 May → 23 May</span>
+          <span class="text-[12px] text-ink-muted">11 nights · flex ±2 days</span>
+        </label>
+
+        <label class="md:col-span-2 block rounded-2xl bg-surface border border-surface-line px-4 py-3 cursor-text">
+          <span class="block text-[11px] uppercase tracking-[0.14em] text-ink-faint">Travellers</span>
+          <span class="font-display font-semibold text-[20px] text-ink leading-tight mt-0.5 block">1 adult</span>
+          <span class="text-[12px] text-ink-muted">Economy</span>
+        </label>
+
+        <button type="submit" class="md:col-span-2 inline-flex items-center justify-center gap-2 rounded-2xl bg-trvl text-white font-semibold text-[15px] shadow-pop hover:bg-trvl-dark transition-colors cursor-pointer">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          Search
+        </button>
+      </div>
+
+      <!-- under-form trust strip -->
+      <div class="mt-5 pt-5 border-t border-surface-line flex flex-wrap items-center gap-x-6 gap-y-2 text-[13px] text-ink-muted">
+        <span class="inline-flex items-center gap-2">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0FA958" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg>
+          USDT, USDC supported
+        </span>
+        <span class="inline-flex items-center gap-2">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0FA958" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg>
+          12-minute price lock
+        </span>
+        <span class="inline-flex items-center gap-2">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0FA958" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg>
+          Refunds in stablecoins, same wallet
+        </span>
+        <span class="inline-flex items-center gap-2 ml-auto font-mono text-[12px] text-ink-faint">
+          GBP/USD&nbsp;<span class="text-ink">1.273</span>&nbsp;· &nbsp;updated 2 min ago
+        </span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════════ FEATURES ═════════════ -->
+<section id="how" class="mt-24 lg:mt-32">
+  <div class="mx-auto max-w-7xl px-6 lg:px-10">
+    <div class="flex items-end justify-between flex-wrap gap-6">
+      <div class="max-w-2xl">
+        <div class="text-[12px] uppercase tracking-[0.18em] text-trvl font-semibold">Why TRVLscan</div>
+        <h2 class="font-display font-extrabold text-ink mt-3 text-[40px] sm:text-[52px] leading-[1.0] tracking-[-0.025em]">
+          The fastest way to fly when your money is on-chain.
+        </h2>
+      </div>
+      <p class="max-w-md text-[15.5px] text-ink-muted leading-[1.6]">
+        Three things every flight aggregator should get right — and the reason most people switch to us after one trip.
+      </p>
+    </div>
+
+    <div class="mt-12 grid md:grid-cols-3 gap-5">
+      <!-- Feature 1 — white -->
+      <article class="relative rounded-3xl bg-white border border-surface-line p-7 hover:shadow-card transition-shadow">
+        <div class="grid place-items-center w-11 h-11 rounded-xl bg-trvl-50 text-trvl">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        </div>
+        <h3 class="font-display font-bold text-[22px] mt-5 tracking-tight">One search, every airline.</h3>
+        <p class="mt-2.5 text-[14.5px] text-ink-muted leading-[1.6]">We check 38 carriers and major aggregators in parallel. You see the real cheapest fare — not the one a partner paid to surface.</p>
+        <div class="mt-5 inline-flex items-center gap-1.5 text-[13px] font-medium text-trvl hover:text-trvl-dark cursor-pointer">
+          See it run
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </div>
+      </article>
+
+      <!-- Feature 2 — dark navy with TRVL Blue glow -->
+      <article class="relative rounded-3xl bg-ink text-white p-7 overflow-hidden">
+        <div class="absolute -right-10 -top-10 w-44 h-44 rounded-full bg-trvl/40 blur-3xl"></div>
+        <div class="absolute -right-20 bottom-0 w-56 h-56 rounded-full bg-trvl-light/20 blur-3xl"></div>
+        <div class="relative grid place-items-center w-11 h-11 rounded-xl bg-white/10 text-white">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 10h18M7 15h3"/></svg>
+        </div>
+        <h3 class="font-display font-bold text-[22px] mt-5 tracking-tight text-white">Pay with the wallet you already use.</h3>
+        <p class="mt-2.5 text-[14.5px] text-white/75 leading-[1.6]">USDT on Tron, USDC on Solana, USDT on Ethereum — same QR flow. No card, no 3-D Secure, no "your bank declined this airline" at 11&nbsp;PM.</p>
+        <div class="relative mt-6 rounded-2xl bg-white/8 border border-white/12 p-3 flex items-center gap-3">
+          <div class="grid place-items-center w-9 h-9 rounded-lg bg-usdt text-white text-[12px] font-mono font-bold">₮</div>
+          <div class="flex-1 min-w-0">
+            <div class="text-[12px] text-white/70">Send to TRC-20 address</div>
+            <div class="font-mono text-[13px] truncate">TQrZ8…dN9f4kE</div>
+          </div>
+          <span class="text-[11px] uppercase tracking-[0.14em] font-mono text-usdt-light">paid</span>
+        </div>
+      </article>
+
+      <!-- Feature 3 — surface variant with details list -->
+      <article class="relative rounded-3xl bg-trvl-50 border border-surface-line p-7">
+        <div class="grid place-items-center w-11 h-11 rounded-xl bg-white text-ink border border-surface-line">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-7 8-13a8 8 0 0 0-16 0c0 6 8 13 8 13Z"/><path d="m9 11 2 2 4-4"/></svg>
+        </div>
+        <h3 class="font-display font-bold text-[22px] mt-5 tracking-tight">Real ticket, real airline, real PNR.</h3>
+        <p class="mt-2.5 text-[14.5px] text-ink-muted leading-[1.6]">Issued through Duffel and IATA-licensed partners. Check in at the airline counter like anyone else. Refunds go back to the same wallet, in stablecoins.</p>
+        <ul class="mt-5 space-y-2 text-[13.5px] text-ink-soft">
+          <li class="flex items-center gap-2"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0FA958" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg>IATA-issued PNR within 90 seconds</li>
+          <li class="flex items-center gap-2"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0FA958" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg>24/7 human support — Telegram or email</li>
+          <li class="flex items-center gap-2"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0FA958" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg>Cancel within 24h for a full stablecoin refund</li>
+        </ul>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════════ DESTINATIONS ═════════════ -->
+<section id="destinations" class="mt-24 lg:mt-32">
+  <div class="mx-auto max-w-7xl px-6 lg:px-10">
+    <div class="flex items-end justify-between flex-wrap gap-6 mb-10">
+      <div>
+        <div class="text-[12px] uppercase tracking-[0.18em] text-trvl font-semibold">Popular right now</div>
+        <h2 class="font-display font-extrabold text-ink mt-3 text-[40px] sm:text-[52px] leading-[1.0] tracking-[-0.025em]">
+          Where everyone's flying this month.
+        </h2>
+      </div>
+      <div class="flex items-center gap-2 text-[13px] text-ink-muted">
+        <span>Showing 8 of 142</span>
+        <a href="#" class="inline-flex items-center gap-1.5 text-ink font-medium hover:text-trvl transition-colors">
+          View all destinations
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- 8 destinations. Each artwork is CSS-only abstract, navy silhouettes on TRVL-blue gradients. -->
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+
+      <!-- 1. Bangkok — twilight blue -->
+      <a href="#" class="group rounded-3xl overflow-hidden bg-white border border-surface-line hover:shadow-lift transition-shadow cursor-pointer">
+        <div class="skyline aspect-[4/5] relative" style="background: linear-gradient(180deg, #4F7BFF 0%, #1B4FFF 55%, #0A1B3D 100%);">
+          <!-- soft glow -->
+          <div class="absolute right-6 top-10 w-12 h-12 rounded-full" style="background: radial-gradient(closest-side, #DDE5FF, #4F7BFF 70%, transparent);"></div>
+          <div class="absolute inset-x-0 bottom-0 h-2/5">
+            <svg viewBox="0 0 200 100" preserveAspectRatio="none" class="w-full h-full">
+              <path fill="#0A1B3D" opacity="0.92" d="M0 80 L0 60 L20 60 L22 50 L24 60 L40 60 L40 30 L52 30 L52 60 L70 60 L70 45 L80 45 L80 25 L88 25 L88 60 L110 60 L110 40 L122 40 L122 60 L140 60 L142 50 L144 60 L160 60 L160 35 L168 35 L168 60 L185 60 L185 50 L200 50 L200 100 L0 100 Z"/>
+            </svg>
+          </div>
+          <div class="absolute top-4 left-4 right-4 flex items-center justify-between text-[11px] uppercase tracking-[0.14em] text-white/90 font-medium">
+            <span>Asia</span><span class="font-mono">10°N</span>
+          </div>
+        </div>
+        <div class="px-4 py-3.5 flex items-end justify-between">
+          <div>
+            <div class="font-display font-bold text-[18px] tracking-tight">Bangkok</div>
+            <div class="text-[12.5px] text-ink-faint">Thailand · BKK</div>
+          </div>
+          <div class="text-right">
+            <div class="text-[10.5px] uppercase tracking-[0.12em] text-ink-faint">from</div>
+            <div class="font-mono text-[15px] font-semibold text-ink">412 USDT</div>
+          </div>
+        </div>
+      </a>
+
+      <!-- 2. Lisbon — pale dawn blue -->
+      <a href="#" class="group rounded-3xl overflow-hidden bg-white border border-surface-line hover:shadow-lift transition-shadow cursor-pointer">
+        <div class="skyline aspect-[4/5] relative" style="background: linear-gradient(180deg, #EEF2FF 0%, #DDE5FF 32%, #4F7BFF 78%, #1A2B4D 100%);">
+          <div class="absolute inset-x-0 bottom-0 h-1/2">
+            <svg viewBox="0 0 200 100" preserveAspectRatio="none" class="w-full h-full">
+              <!-- rolling Lisbon hills -->
+              <path fill="#0A1B3D" opacity="0.92" d="M0 100 L0 70 C20 65 35 60 50 65 C70 70 80 55 100 60 C120 65 130 50 150 55 C170 60 185 50 200 55 L200 100 Z"/>
+              <!-- 25 de Abril bridge tower -->
+              <rect x="92" y="38" width="6" height="32" fill="#0A1B3D" opacity="0.92"/>
+              <polygon points="92,38 95,30 98,38" fill="#0A1B3D" opacity="0.92"/>
+            </svg>
+          </div>
+          <div class="absolute top-4 left-4 right-4 flex items-center justify-between text-[11px] uppercase tracking-[0.14em] text-ink-soft font-medium">
+            <span>Europe</span><span class="font-mono">38°N</span>
+          </div>
+        </div>
+        <div class="px-4 py-3.5 flex items-end justify-between">
+          <div>
+            <div class="font-display font-bold text-[18px] tracking-tight">Lisbon</div>
+            <div class="text-[12.5px] text-ink-faint">Portugal · LIS</div>
+          </div>
+          <div class="text-right">
+            <div class="text-[10.5px] uppercase tracking-[0.12em] text-ink-faint">from</div>
+            <div class="font-mono text-[15px] font-semibold text-ink">186 USDT</div>
+          </div>
+        </div>
+      </a>
+
+      <!-- 3. Tokyo — deep night with electric sun -->
+      <a href="#" class="group rounded-3xl overflow-hidden bg-white border border-surface-line hover:shadow-lift transition-shadow cursor-pointer">
+        <div class="skyline aspect-[4/5] relative" style="background: linear-gradient(180deg, #0A1B3D 0%, #1A2B4D 40%, #1B4FFF 82%, #4F7BFF 100%);">
+          <div class="absolute right-6 top-7 w-10 h-10 rounded-full" style="background: radial-gradient(closest-side, #DDE5FF, #4F7BFF 65%, transparent);"></div>
+          <div class="absolute inset-x-0 bottom-0 h-2/5">
+            <svg viewBox="0 0 200 100" preserveAspectRatio="none" class="w-full h-full">
+              <path fill="#0A1B3D" opacity="0.95" d="M0 100 L0 70 L15 70 L15 50 L25 50 L25 30 L35 30 L35 70 L55 70 L55 35 L70 35 L70 70 L90 70 L90 20 L100 20 L100 10 L108 10 L108 70 L130 70 L130 45 L145 45 L145 70 L165 70 L165 55 L180 55 L180 70 L200 70 L200 100 Z"/>
+            </svg>
+          </div>
+          <div class="absolute top-4 left-4 right-4 flex items-center justify-between text-[11px] uppercase tracking-[0.14em] text-white font-medium">
+            <span>Asia</span><span class="font-mono">35°N</span>
+          </div>
+        </div>
+        <div class="px-4 py-3.5 flex items-end justify-between">
+          <div>
+            <div class="font-display font-bold text-[18px] tracking-tight">Tokyo</div>
+            <div class="text-[12.5px] text-ink-faint">Japan · HND</div>
+          </div>
+          <div class="text-right">
+            <div class="text-[10.5px] uppercase tracking-[0.12em] text-ink-faint">from</div>
+            <div class="font-mono text-[15px] font-semibold text-ink">689 USDT</div>
+          </div>
+        </div>
+      </a>
+
+      <!-- 4. Dubai — desert dusk in cool blue -->
+      <a href="#" class="group rounded-3xl overflow-hidden bg-white border border-surface-line hover:shadow-lift transition-shadow cursor-pointer">
+        <div class="skyline aspect-[4/5] relative" style="background: linear-gradient(180deg, #DDE5FF 0%, #4F7BFF 50%, #0033C1 88%, #0A1B3D 100%);">
+          <div class="absolute inset-x-0 bottom-0 h-3/5">
+            <svg viewBox="0 0 200 100" preserveAspectRatio="none" class="w-full h-full">
+              <!-- Burj Khalifa silhouette: tall narrow centerpiece + neighbors -->
+              <path fill="#0A1B3D" opacity="0.95" d="M0 100 L0 75 L20 75 L22 60 L26 60 L28 75 L45 75 L45 50 L55 50 L55 75 L70 75 L70 40 L80 40 L80 75 L92 75 L92 25 L96 25 L98 5 L100 5 L102 25 L106 25 L106 75 L118 75 L118 45 L130 45 L130 75 L150 75 L152 55 L156 55 L158 75 L175 75 L175 60 L185 60 L185 75 L200 75 L200 100 Z"/>
+            </svg>
+          </div>
+          <div class="absolute top-4 left-4 right-4 flex items-center justify-between text-[11px] uppercase tracking-[0.14em] text-ink-soft font-medium">
+            <span>Mid-East</span><span class="font-mono">25°N</span>
+          </div>
+        </div>
+        <div class="px-4 py-3.5 flex items-end justify-between">
+          <div>
+            <div class="font-display font-bold text-[18px] tracking-tight">Dubai</div>
+            <div class="text-[12.5px] text-ink-faint">UAE · DXB</div>
+          </div>
+          <div class="text-right">
+            <div class="text-[10.5px] uppercase tracking-[0.12em] text-ink-faint">from</div>
+            <div class="font-mono text-[15px] font-semibold text-ink">298 USDT</div>
+          </div>
+        </div>
+      </a>
+
+      <!-- 5. New York — Manhattan dusk -->
+      <a href="#" class="group rounded-3xl overflow-hidden bg-white border border-surface-line hover:shadow-lift transition-shadow cursor-pointer">
+        <div class="skyline aspect-[4/5] relative" style="background: linear-gradient(180deg, #1A2B4D 0%, #0033C1 45%, #4F7BFF 88%, #DDE5FF 100%);">
+          <!-- moon -->
+          <div class="absolute left-6 top-7 w-7 h-7 rounded-full bg-white/85 blur-[1px]"></div>
+          <div class="absolute inset-x-0 bottom-0 h-1/2">
+            <svg viewBox="0 0 200 100" preserveAspectRatio="none" class="w-full h-full">
+              <!-- jagged NYC skyline -->
+              <path fill="#0A1B3D" opacity="0.95" d="M0 100 L0 65 L8 65 L8 45 L18 45 L18 65 L28 65 L28 30 L36 30 L36 15 L40 15 L40 30 L46 30 L46 65 L60 65 L60 50 L68 50 L68 35 L76 35 L76 65 L88 65 L88 25 L96 25 L96 65 L110 65 L110 40 L120 40 L120 65 L132 65 L132 30 L140 30 L140 18 L144 18 L144 30 L150 30 L150 65 L165 65 L165 45 L175 45 L175 65 L188 65 L188 55 L200 55 L200 100 Z"/>
+            </svg>
+          </div>
+          <div class="absolute top-4 left-4 right-4 flex items-center justify-between text-[11px] uppercase tracking-[0.14em] text-white font-medium">
+            <span>N. America</span><span class="font-mono">40°N</span>
+          </div>
+        </div>
+        <div class="px-4 py-3.5 flex items-end justify-between">
+          <div>
+            <div class="font-display font-bold text-[18px] tracking-tight">New York</div>
+            <div class="text-[12.5px] text-ink-faint">USA · JFK</div>
+          </div>
+          <div class="text-right">
+            <div class="text-[10.5px] uppercase tracking-[0.12em] text-ink-faint">from</div>
+            <div class="font-mono text-[15px] font-semibold text-ink">441 USDT</div>
+          </div>
+        </div>
+      </a>
+
+      <!-- 6. Istanbul — Bosphorus twilight with mosque domes -->
+      <a href="#" class="group rounded-3xl overflow-hidden bg-white border border-surface-line hover:shadow-lift transition-shadow cursor-pointer">
+        <div class="skyline aspect-[4/5] relative" style="background: linear-gradient(180deg, #4F7BFF 0%, #0033C1 60%, #0A1B3D 100%);">
+          <div class="absolute right-8 top-9 w-9 h-9 rounded-full" style="background: radial-gradient(closest-side, #DDE5FF, #4F7BFF 70%, transparent);"></div>
+          <div class="absolute inset-x-0 bottom-0 h-2/5">
+            <svg viewBox="0 0 200 100" preserveAspectRatio="none" class="w-full h-full">
+              <!-- Hagia Sophia / Blue Mosque silhouette: dome + minarets -->
+              <path fill="#0A1B3D" opacity="0.94" d="M0 100 L0 80 L25 80 L25 65 L35 55 L45 65 L45 80 L70 80 L70 60 Q80 40 90 60 L90 80 L100 80 L100 30 L104 30 L104 80 L115 80 Q125 50 135 80 L155 80 L155 70 L160 60 L165 70 L165 80 L185 80 L185 70 L200 70 L200 100 Z"/>
+              <!-- minaret tip dots -->
+              <circle cx="35" cy="50" r="2" fill="#0A1B3D" opacity="0.94"/>
+              <circle cx="160" cy="55" r="2" fill="#0A1B3D" opacity="0.94"/>
+            </svg>
+          </div>
+          <div class="absolute top-4 left-4 right-4 flex items-center justify-between text-[11px] uppercase tracking-[0.14em] text-white/95 font-medium">
+            <span>Eurasia</span><span class="font-mono">41°N</span>
+          </div>
+        </div>
+        <div class="px-4 py-3.5 flex items-end justify-between">
+          <div>
+            <div class="font-display font-bold text-[18px] tracking-tight">Istanbul</div>
+            <div class="text-[12.5px] text-ink-faint">Türkiye · IST</div>
+          </div>
+          <div class="text-right">
+            <div class="text-[10.5px] uppercase tracking-[0.12em] text-ink-faint">from</div>
+            <div class="font-mono text-[15px] font-semibold text-ink">142 USDT</div>
+          </div>
+        </div>
+      </a>
+
+      <!-- 7. Bali — tropical island silhouette w/ palms -->
+      <a href="#" class="group rounded-3xl overflow-hidden bg-white border border-surface-line hover:shadow-lift transition-shadow cursor-pointer">
+        <div class="skyline aspect-[4/5] relative" style="background: linear-gradient(180deg, #DDE5FF 0%, #4F7BFF 45%, #1B4FFF 80%, #0A1B3D 100%);">
+          <div class="absolute inset-x-0 bottom-0 h-2/5">
+            <svg viewBox="0 0 200 100" preserveAspectRatio="none" class="w-full h-full">
+              <!-- island volcano + horizon line -->
+              <path fill="#0A1B3D" opacity="0.94" d="M0 100 L0 75 C30 75 50 60 70 65 C90 70 100 50 120 55 L130 30 L140 55 C160 60 180 50 200 55 L200 100 Z"/>
+              <!-- palm fronds left -->
+              <g fill="#0A1B3D" opacity="0.94">
+                <rect x="22" y="55" width="2" height="22"/>
+                <path d="M23 55 C 12 50 8 48 5 46 C 14 50 18 52 23 55"/>
+                <path d="M23 55 C 36 50 40 47 44 44 C 36 50 30 53 23 55"/>
+                <path d="M23 55 C 18 47 16 40 15 36 C 20 44 22 50 23 55"/>
+              </g>
+              <!-- palm right -->
+              <g fill="#0A1B3D" opacity="0.94">
+                <rect x="172" y="60" width="2" height="18"/>
+                <path d="M173 60 C 184 56 188 54 192 52 C 184 56 178 58 173 60"/>
+                <path d="M173 60 C 162 56 158 54 154 52 C 162 56 168 58 173 60"/>
+                <path d="M173 60 C 168 53 167 47 167 44 C 171 50 172 56 173 60"/>
+              </g>
+            </svg>
+          </div>
+          <div class="absolute top-4 left-4 right-4 flex items-center justify-between text-[11px] uppercase tracking-[0.14em] text-ink-soft font-medium">
+            <span>Asia</span><span class="font-mono">8°S</span>
+          </div>
+        </div>
+        <div class="px-4 py-3.5 flex items-end justify-between">
+          <div>
+            <div class="font-display font-bold text-[18px] tracking-tight">Bali</div>
+            <div class="text-[12.5px] text-ink-faint">Indonesia · DPS</div>
+          </div>
+          <div class="text-right">
+            <div class="text-[10.5px] uppercase tracking-[0.12em] text-ink-faint">from</div>
+            <div class="font-mono text-[15px] font-semibold text-ink">724 USDT</div>
+          </div>
+        </div>
+      </a>
+
+      <!-- 8. Cape Town — Table Mountain + ocean -->
+      <a href="#" class="group rounded-3xl overflow-hidden bg-white border border-surface-line hover:shadow-lift transition-shadow cursor-pointer">
+        <div class="skyline aspect-[4/5] relative" style="background: linear-gradient(180deg, #1A2B4D 0%, #1B4FFF 50%, #4F7BFF 100%);">
+          <div class="absolute inset-x-0 bottom-0 h-3/5">
+            <svg viewBox="0 0 200 100" preserveAspectRatio="none" class="w-full h-full">
+              <!-- flat-top Table Mountain -->
+              <path fill="#0A1B3D" opacity="0.95" d="M0 100 L0 70 C 15 65 25 50 40 45 L60 35 L130 35 L150 45 C 165 50 180 65 200 70 L200 100 Z"/>
+              <!-- thin city line at base -->
+              <path fill="#0A1B3D" opacity="0.95" d="M0 100 L0 78 L20 78 L20 72 L30 72 L30 78 L50 78 L50 70 L58 70 L58 78 L80 78 L80 73 L90 73 L90 78 L120 78 L120 70 L132 70 L132 78 L160 78 L160 74 L172 74 L172 78 L200 78 L200 100 Z"/>
+            </svg>
+          </div>
+          <div class="absolute top-4 left-4 right-4 flex items-center justify-between text-[11px] uppercase tracking-[0.14em] text-white font-medium">
+            <span>Africa</span><span class="font-mono">33°S</span>
+          </div>
+        </div>
+        <div class="px-4 py-3.5 flex items-end justify-between">
+          <div>
+            <div class="font-display font-bold text-[18px] tracking-tight">Cape Town</div>
+            <div class="text-[12.5px] text-ink-faint">South Africa · CPT</div>
+          </div>
+          <div class="text-right">
+            <div class="text-[10.5px] uppercase tracking-[0.12em] text-ink-faint">from</div>
+            <div class="font-mono text-[15px] font-semibold text-ink">512 USDT</div>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════════ FAQ ═════════════ -->
+<section id="faq" class="mt-24 lg:mt-32">
+  <div class="mx-auto max-w-7xl px-6 lg:px-10">
+    <div class="grid lg:grid-cols-12 gap-10">
+      <div class="lg:col-span-5">
+        <div class="text-[12px] uppercase tracking-[0.18em] text-trvl font-semibold">Common questions</div>
+        <h2 class="font-display font-extrabold text-ink mt-3 text-[40px] sm:text-[48px] leading-[1.02] tracking-[-0.025em]">
+          The honest answers to the things you're going to ask anyway.
+        </h2>
+        <p class="mt-5 text-[15px] text-ink-muted leading-[1.6] max-w-md">
+          Can't find your question? Email <a href="mailto:hello@trvlscan.com" class="text-trvl hover:text-trvl-dark underline-offset-2 hover:underline">hello@trvlscan.com</a> or message us on Telegram. A real person replies, usually inside an hour.
+        </p>
+      </div>
+
+      <div class="lg:col-span-7">
+        <div class="rounded-3xl bg-white border border-surface-line overflow-hidden">
+
+          <details class="group border-b border-surface-line py-5 px-6">
+            <summary class="flex items-start justify-between gap-6">
+              <span class="font-display font-bold text-[17px] sm:text-[18px] tracking-[-0.01em]">Is it actually a real airline ticket?</span>
+              <span class="chev grid place-items-center w-8 h-8 rounded-full bg-trvl-50 text-trvl shrink-0">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+              </span>
+            </summary>
+            <p class="mt-3 text-[14.5px] text-ink-muted leading-[1.65]">
+              Yes. Tickets are issued through Duffel and IATA-licensed travel partners with a real PNR. You check in at the airline counter exactly like anyone who paid with a card. The only thing different is how the money got there.
+            </p>
+          </details>
+
+          <details class="group border-b border-surface-line py-5 px-6">
+            <summary class="flex items-start justify-between gap-6">
+              <span class="font-display font-bold text-[17px] sm:text-[18px] tracking-[-0.01em]">Which stablecoins do you accept?</span>
+              <span class="chev grid place-items-center w-8 h-8 rounded-full bg-trvl-50 text-trvl shrink-0">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+              </span>
+            </summary>
+            <p class="mt-3 text-[14.5px] text-ink-muted leading-[1.65]">
+              USDT on Tron (TRC-20), USDT on Ethereum, and USDC on Solana, Ethereum and Base. Tron is cheapest and fastest — usually settles in under a minute and costs cents in fees. We default to it unless you pick otherwise.
+            </p>
+          </details>
+
+          <details class="group border-b border-surface-line py-5 px-6">
+            <summary class="flex items-start justify-between gap-6">
+              <span class="font-display font-bold text-[17px] sm:text-[18px] tracking-[-0.01em]">What if the price changes between booking and paying?</span>
+              <span class="chev grid place-items-center w-8 h-8 rounded-full bg-trvl-50 text-trvl shrink-0">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+              </span>
+            </summary>
+            <p class="mt-3 text-[14.5px] text-ink-muted leading-[1.65]">
+              We lock the USDT amount for 12 minutes from the moment you click "Pay". If your transaction confirms inside that window — even if the airline price moves or the FX shifts — you pay exactly what you saw. Outside of it, we'll quote a fresh price.
+            </p>
+          </details>
+
+          <details class="group border-b border-surface-line py-5 px-6">
+            <summary class="flex items-start justify-between gap-6">
+              <span class="font-display font-bold text-[17px] sm:text-[18px] tracking-[-0.01em]">Do you do refunds?</span>
+              <span class="chev grid place-items-center w-8 h-8 rounded-full bg-trvl-50 text-trvl shrink-0">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+              </span>
+            </summary>
+            <p class="mt-3 text-[14.5px] text-ink-muted leading-[1.65]">
+              Cancel within 24 hours of booking and the airline allows a full refund — we send the same amount back to the wallet you paid from, in the same stablecoin. After that, refund rules follow whatever fare class you bought (we show this clearly before checkout).
+            </p>
+          </details>
+
+          <details class="group border-b border-surface-line py-5 px-6">
+            <summary class="flex items-start justify-between gap-6">
+              <span class="font-display font-bold text-[17px] sm:text-[18px] tracking-[-0.01em]">How do you make money if there are no card fees?</span>
+              <span class="chev grid place-items-center w-8 h-8 rounded-full bg-trvl-50 text-trvl shrink-0">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+              </span>
+            </summary>
+            <p class="mt-3 text-[14.5px] text-ink-muted leading-[1.65]">
+              A flat 2.5% margin on top of the airline's fare, baked into the USDT price you see. No hidden FX spread, no booking fee that appears at step 4, no "service charge" surprise. The number on the search result is what hits your wallet.
+            </p>
+          </details>
+
+          <details class="group py-5 px-6">
+            <summary class="flex items-start justify-between gap-6">
+              <span class="font-display font-bold text-[17px] sm:text-[18px] tracking-[-0.01em]">Do I need a crypto wallet I've never used before?</span>
+              <span class="chev grid place-items-center w-8 h-8 rounded-full bg-trvl-50 text-trvl shrink-0">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+              </span>
+            </summary>
+            <p class="mt-3 text-[14.5px] text-ink-muted leading-[1.65]">
+              No. If you already hold USDT or USDC anywhere — Binance, Trust Wallet, MetaMask, OKX, Bybit, a hardware wallet — you can pay from it. Scan the QR, send from your usual app, done. We don't make you sign up for anything new.
+            </p>
+          </details>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════════ BIG CTA ═════════════ -->
+<section class="mt-24 lg:mt-32">
+  <div class="mx-auto max-w-7xl px-6 lg:px-10">
+    <div class="relative rounded-[32px] overflow-hidden bg-ink text-white px-8 py-14 lg:px-16 lg:py-20">
+      <!-- atmospheric blue glow -->
+      <div class="pointer-events-none absolute -top-32 -right-24 w-[520px] h-[520px] rounded-full bg-trvl/35 blur-3xl"></div>
+      <div class="pointer-events-none absolute -bottom-40 -left-32 w-[460px] h-[460px] rounded-full bg-trvl-light/25 blur-3xl"></div>
+
+      <!-- twilight horizon strip behind text -->
+      <div class="pointer-events-none absolute inset-x-0 top-0 h-1/3" style="background: linear-gradient(180deg, #0033C1 0%, transparent 100%); opacity:.45;"></div>
+
+      <div class="relative grid lg:grid-cols-12 gap-10 items-end">
+        <div class="lg:col-span-8">
+          <div class="text-[12px] uppercase tracking-[0.18em] text-trvl-light font-semibold">Ready when you are</div>
+          <h2 class="font-display font-extrabold mt-3 text-[44px] sm:text-[64px] leading-[0.98] tracking-[-0.03em]">
+            Pick a destination.<br/>
+            Send a few <span class="accent-mark">USDT</span>.<br/>
+            Get on the plane.
+          </h2>
+          <p class="mt-6 max-w-lg text-[16px] leading-[1.6] text-white/75">
+            No card. No bank declines. No "your travel agent will email you a confirmation in 24 hours". A real ticket, in your inbox, in under two minutes.
+          </p>
+        </div>
+        <div class="lg:col-span-4 flex flex-col gap-3">
+          <a href="#search" class="inline-flex items-center justify-center gap-2 h-12 px-5 rounded-xl bg-trvl text-white text-[15px] font-semibold shadow-pop hover:bg-trvl-dark transition-colors cursor-pointer">
+            Start a search
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          </a>
+          <a href="#how" class="inline-flex items-center justify-center gap-2 h-12 px-5 rounded-xl border border-white/15 bg-white/5 text-white text-[15px] font-medium hover:bg-white/10 transition-colors cursor-pointer">
+            See how it works
+          </a>
+          <span class="mt-1 inline-flex items-center gap-2 text-[12.5px] text-white/65 self-center">
+            <span class="inline-block w-1.5 h-1.5 rounded-full bg-usdt"></span>
+            <span class="font-mono">All systems operational</span>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════════ FOOTER ═════════════ -->
+<footer class="mt-20 lg:mt-28 bg-ink text-white">
+  <div class="mx-auto max-w-7xl px-6 lg:px-10 py-16">
+    <div class="grid lg:grid-cols-12 gap-10">
+      <div class="lg:col-span-5">
+        <a href="#" class="flex items-center gap-2.5">
+          <span class="grid place-items-center w-8 h-8 rounded-lg bg-white text-ink">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M3 11.5 21 4l-7.5 18-2.4-7.7L3 11.5Z"/>
+            </svg>
+          </span>
+          <span class="font-display font-semibold text-[18px]">TRVLscan</span>
+        </a>
+        <p class="mt-5 max-w-md text-[14.5px] leading-[1.65] text-white/70">
+          Fly anywhere. Pay in crypto. A flight aggregator built for people whose money already lives on-chain.
+        </p>
+        <div class="mt-6 inline-flex items-center gap-2 px-3 h-8 rounded-md border border-white/15 bg-white/5 text-[12.5px] text-white/85">
+          <span class="inline-block w-1.5 h-1.5 rounded-full bg-usdt"></span>
+          <span class="font-mono">Tickets issued from London · serving 190 countries</span>
+        </div>
+      </div>
+
+      <div class="lg:col-span-2">
+        <div class="text-[11px] uppercase tracking-[0.18em] text-white/55 font-semibold">Product</div>
+        <ul class="mt-3 space-y-2 text-[14px] text-white/80">
+          <li><a href="#" class="hover:text-white transition-colors">Search flights</a></li>
+          <li><a href="#" class="hover:text-white transition-colors">How it works</a></li>
+          <li><a href="#" class="hover:text-white transition-colors">Destinations</a></li>
+          <li><a href="#" class="hover:text-white transition-colors">Price tracker</a></li>
+        </ul>
+      </div>
+
+      <div class="lg:col-span-2">
+        <div class="text-[11px] uppercase tracking-[0.18em] text-white/55 font-semibold">Company</div>
+        <ul class="mt-3 space-y-2 text-[14px] text-white/80">
+          <li><a href="#" class="hover:text-white transition-colors">About</a></li>
+          <li><a href="#" class="hover:text-white transition-colors">Blog</a></li>
+          <li><a href="#" class="hover:text-white transition-colors">Careers</a></li>
+          <li><a href="#" class="hover:text-white transition-colors">Press</a></li>
+        </ul>
+      </div>
+
+      <div class="lg:col-span-3">
+        <div class="text-[11px] uppercase tracking-[0.18em] text-white/55 font-semibold">Help &amp; legal</div>
+        <ul class="mt-3 space-y-2 text-[14px] text-white/80">
+          <li><a href="mailto:hello@trvlscan.com" class="hover:text-white transition-colors">hello@trvlscan.com</a></li>
+          <li><a href="#" class="hover:text-white transition-colors">Telegram support</a></li>
+          <li><a href="#" class="hover:text-white transition-colors">Refund policy</a></li>
+          <li><a href="#" class="hover:text-white transition-colors">Terms · Privacy</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="mt-14 pt-6 border-t border-white/10 flex flex-wrap items-center gap-x-6 gap-y-3 text-[12px] text-white/55">
+      <span>© 2026 TRVLscan Ltd</span>
+      <span class="font-mono">Settlement: USDT TRC-20 · USDT ERC-20 · USDC SOL/ETH/BASE</span>
+      <span class="ml-auto font-mono">v 0.18 · build 2026.04.30</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
