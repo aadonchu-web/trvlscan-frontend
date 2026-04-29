@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TRVLscan Brandbook v1.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* Brand colors */
+    --trvl-blue: #1B4FFF;
+    --trvl-blue-dark: #0033C1;
+    --trvl-blue-light: #4F7BFF;
+    --trvl-blue-50: #EEF2FF;
+    --trvl-blue-100: #DDE5FF;
+    --navy: #0A1B3D;
+    --navy-soft: #1A2B4D;
+    --usdt-green: #0FA958;
+    --usdt-green-light: #E6F7EE;
+    --usdt-green-dark: #087A3F;
+    --surface: #F7F7F8;
+    --surface-2: #FFFFFF;
+    --border: #E5E7EB;
+    --border-soft: #F0F1F3;
+    --muted: #6B7280;
+    --muted-soft: #9CA3AF;
+    --error: #DC2626;
+    --error-bg: #FEE2E2;
+    --warning: #D97706;
+    --warning-bg: #FEF3C7;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: var(--navy);
+    background: var(--surface);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  .display { font-family: 'Plus Jakarta Sans', sans-serif; }
+  .mono { font-family: 'JetBrains Mono', 'Menlo', monospace; }
+
+  /* Layout */
+  .wrap { max-width: 1280px; margin: 0 auto; padding: 0 32px; }
+  section { padding: 96px 0; border-bottom: 1px solid var(--border-soft); }
+  section:last-child { border-bottom: 0; }
+  .section-label {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--trvl-blue); margin-bottom: 16px; display: block;
+  }
+  .section-title {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 56px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.05;
+    color: var(--navy); margin-bottom: 24px;
+  }
+  .section-lead {
+    font-size: 19px; color: var(--muted); max-width: 720px; line-height: 1.6;
+  }
+
+  /* Top nav */
+  .nav {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(247, 247, 248, 0.85);
+    backdrop-filter: blur(20px) saturate(180%);
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .nav-inner {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 16px 32px; max-width: 1280px; margin: 0 auto;
+  }
+  .nav-logo { display: flex; align-items: center; gap: 8px; }
+  .nav-logo-mark {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--trvl-blue) 0%, var(--trvl-blue-dark) 100%);
+  }
+  .nav-logo-text {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 800; font-size: 18px; letter-spacing: -0.02em;
+  }
+  .nav-logo-text .scan { color: var(--trvl-blue); }
+  .nav-links { display: flex; gap: 28px; }
+  .nav-links a {
+    color: var(--muted); text-decoration: none; font-size: 14px; font-weight: 500;
+    transition: color 0.15s;
+  }
+  .nav-links a:hover { color: var(--navy); }
+  .nav-version {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; color: var(--muted-soft);
+    background: var(--surface-2); padding: 4px 10px; border-radius: 999px;
+    border: 1px solid var(--border);
+  }
+
+  /* Hero / cover */
+  .cover { padding: 160px 0 120px; }
+  .cover-meta {
+    display: flex; gap: 24px; margin-bottom: 32px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em;
+  }
+  .cover-meta span { display: flex; align-items: center; gap: 6px; }
+  .cover-meta .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--usdt-green); }
+  .cover-title {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 120px; font-weight: 800; line-height: 0.95; letter-spacing: -0.045em;
+    margin-bottom: 32px; color: var(--navy);
+  }
+  .cover-title .accent { color: var(--trvl-blue); }
+  .cover-sub {
+    font-size: 22px; color: var(--muted); max-width: 640px; line-height: 1.5;
+  }
+
+  /* Strategy */
+  .strategy-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 64px; margin-top: 80px;
+  }
+  .strategy-card {
+    background: var(--surface-2); border-radius: 24px; padding: 48px;
+    border: 1px solid var(--border-soft);
+  }
+  .strategy-card.dark {
+    background: var(--navy); color: white;
+    border-color: transparent;
+  }
+  .strategy-eyebrow {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--trvl-blue); margin-bottom: 16px;
+  }
+  .strategy-card.dark .strategy-eyebrow { color: var(--trvl-blue-light); }
+  .strategy-headline {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 40px; font-weight: 800; letter-spacing: -0.025em; line-height: 1.1;
+    margin-bottom: 20px;
+  }
+  .strategy-text {
+    font-size: 17px; line-height: 1.65; color: var(--muted);
+  }
+  .strategy-card.dark .strategy-text { color: rgba(255, 255, 255, 0.75); }
+
+  .pillars {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 48px;
+  }
+  .pillar {
+    background: var(--surface-2); border-radius: 16px; padding: 32px;
+    border: 1px solid var(--border-soft);
+  }
+  .pillar-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; color: var(--trvl-blue); margin-bottom: 12px;
+  }
+  .pillar-title {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 22px; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 12px;
+  }
+  .pillar-desc {
+    font-size: 15px; color: var(--muted); line-height: 1.6;
+  }
+
+  /* Voice */
+  .voice-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 48px;
+  }
+  .voice-card {
+    background: var(--surface-2); border-radius: 16px; padding: 32px;
+    border: 1px solid var(--border-soft); position: relative;
+  }
+  .voice-card.yes { border-left: 4px solid var(--usdt-green); }
+  .voice-card.no { border-left: 4px solid var(--error); }
+  .voice-tag {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; font-weight: 500; letter-spacing: 0.05em;
+    padding: 4px 10px; border-radius: 4px; margin-bottom: 16px;
+  }
+  .voice-tag.yes { background: var(--usdt-green-light); color: var(--usdt-green-dark); }
+  .voice-tag.no { background: var(--error-bg); color: var(--error); }
+  .voice-quote {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 22px; font-weight: 600; letter-spacing: -0.01em; line-height: 1.35;
+    color: var(--navy); margin-bottom: 12px;
+  }
+  .voice-card.no .voice-quote { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--error); }
+  .voice-note {
+    font-size: 14px; color: var(--muted); line-height: 1.55;
+  }
+
+  .copy-rule {
+    background: var(--trvl-blue-50); border-radius: 16px; padding: 32px;
+    margin-top: 32px; border-left: 4px solid var(--trvl-blue);
+  }
+  .copy-rule-title {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 20px; font-weight: 700; margin-bottom: 12px; color: var(--navy);
+  }
+  .copy-rule-table {
+    margin-top: 16px; width: 100%; font-size: 14px; border-collapse: collapse;
+  }
+  .copy-rule-table th {
+    text-align: left; padding: 8px 16px 8px 0;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--muted); border-bottom: 1px solid var(--border);
+  }
+  .copy-rule-table td {
+    padding: 12px 16px 12px 0; vertical-align: top; border-bottom: 1px solid var(--border-soft);
+  }
+  .copy-rule-table .level {
+    font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    color: var(--trvl-blue); white-space: nowrap;
+  }
+  .copy-rule-table .example {
+    font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 600; color: var(--navy);
+  }
+
+  /* Logo */
+  .logo-display {
+    background: var(--surface-2); border-radius: 24px; padding: 80px;
+    display: flex; justify-content: center; align-items: center; margin-top: 48px;
+    border: 1px solid var(--border-soft); min-height: 280px;
+  }
+  .logo-svg { width: 100%; max-width: 480px; height: auto; }
+  .logo-rules {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 32px;
+  }
+  .logo-rule {
+    background: var(--surface-2); border-radius: 16px; padding: 28px;
+    border: 1px solid var(--border-soft);
+  }
+  .logo-rule-eyebrow {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--trvl-blue); margin-bottom: 12px;
+  }
+  .logo-rule-title {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 18px; font-weight: 700; margin-bottom: 8px;
+  }
+  .logo-rule-desc { font-size: 14px; color: var(--muted); line-height: 1.55; }
+
+  .logo-donts {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 32px;
+  }
+  .logo-dont {
+    background: var(--surface-2); border-radius: 12px; padding: 20px;
+    border: 1px solid var(--border-soft);
+    display: flex; align-items: center; gap: 16px;
+  }
+  .dont-icon {
+    flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%;
+    background: var(--error-bg); color: var(--error);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 700;
+  }
+  .logo-dont-text { font-size: 14px; color: var(--navy); }
+
+  /* Color system */
+  .color-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 48px;
+  }
+  .color-card {
+    background: var(--surface-2); border-radius: 16px; overflow: hidden;
+    border: 1px solid var(--border-soft);
+  }
+  .color-swatch { height: 140px; }
+  .color-info { padding: 20px; }
+  .color-name {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 16px; font-weight: 700; margin-bottom: 4px;
+  }
+  .color-hex {
+    font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .color-use { font-size: 12px; color: var(--muted-soft); line-height: 1.4; }
+
+  .semantic-row {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 24px;
+  }
+  .semantic-card {
+    border-radius: 12px; padding: 20px;
+  }
+  .semantic-name {
+    font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .semantic-hex {
+    font-family: 'JetBrains Mono', monospace; font-size: 13px; opacity: 0.7;
+  }
+
+  .scale-row {
+    display: flex; gap: 4px; margin-top: 16px;
+  }
+  .scale-block {
+    flex: 1; height: 80px; border-radius: 8px; padding: 12px;
+    display: flex; flex-direction: column; justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  }
+
+  /* Typography */
+  .type-row {
+    display: flex; align-items: baseline; gap: 32px; padding: 32px 0;
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .type-row:last-child { border-bottom: 0; }
+  .type-meta {
+    flex-shrink: 0; width: 200px;
+    font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--muted);
+    line-height: 1.6;
+  }
+  .type-meta strong { color: var(--navy); display: block; margin-bottom: 4px; }
+  .type-sample.h1 {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 72px; font-weight: 800; letter-spacing: -0.035em; line-height: 1.05;
+    color: var(--navy);
+  }
+  .type-sample.h2 {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 48px; font-weight: 800; letter-spacing: -0.025em; line-height: 1.1;
+    color: var(--navy);
+  }
+  .type-sample.h3 {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 32px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.2;
+    color: var(--navy);
+  }
+  .type-sample.h4 {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 22px; font-weight: 700; letter-spacing: -0.01em; line-height: 1.3;
+    color: var(--navy);
+  }
+  .type-sample.body {
+    font-family: 'Inter', sans-serif;
+    font-size: 16px; font-weight: 400; line-height: 1.6; color: var(--navy);
+    max-width: 560px;
+  }
+  .type-sample.small {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px; font-weight: 400; line-height: 1.55; color: var(--muted);
+  }
+  .type-sample.mono {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px; color: var(--trvl-blue);
+  }
+
+  /* Iconography */
+  .icon-grid {
+    display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; margin-top: 48px;
+  }
+  .icon-card {
+    background: var(--surface-2); border-radius: 12px; padding: 24px;
+    text-align: center; border: 1px solid var(--border-soft);
+  }
+  .icon-card svg { width: 28px; height: 28px; color: var(--navy); margin-bottom: 12px; }
+  .icon-name {
+    font-size: 11px; color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* Imagery */
+  .imagery-cols {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 48px;
+  }
+  .imagery-col h4 {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 20px; font-weight: 700; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .imagery-col.yes h4::before {
+    content: ''; width: 12px; height: 12px; border-radius: 50%; background: var(--usdt-green);
+  }
+  .imagery-col.no h4::before {
+    content: ''; width: 12px; height: 12px; border-radius: 50%; background: var(--error);
+  }
+  .imagery-col ul {
+    list-style: none; padding: 0;
+  }
+  .imagery-col li {
+    padding: 12px 0; font-size: 15px; color: var(--navy); border-bottom: 1px solid var(--border-soft);
+    line-height: 1.5;
+  }
+  .imagery-col li:last-child { border-bottom: 0; }
+  .imagery-col li span {
+    display: block; font-size: 13px; color: var(--muted); margin-top: 4px;
+  }
+
+  /* Components */
+  .components-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 48px;
+  }
+  .component-block {
+    background: var(--surface-2); border-radius: 16px; padding: 32px;
+    border: 1px solid var(--border-soft);
+  }
+  .component-label {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 20px;
+  }
+
+  /* Buttons preview */
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 14px 24px; border-radius: 12px;
+    font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 600;
+    border: none; cursor: pointer; transition: all 0.15s;
+    margin: 4px;
+  }
+  .btn-primary {
+    background: var(--trvl-blue); color: white;
+  }
+  .btn-primary:hover { background: var(--trvl-blue-dark); }
+  .btn-secondary {
+    background: var(--surface); color: var(--navy);
+    border: 1px solid var(--border);
+  }
+  .btn-success {
+    background: var(--usdt-green); color: white;
+  }
+  .btn-ghost {
+    background: transparent; color: var(--trvl-blue);
+  }
+
+  /* Form preview */
+  .form-row {
+    display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px;
+  }
+  .form-label {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--muted);
+  }
+  .form-input {
+    padding: 14px 16px; border-radius: 12px; border: 1px solid var(--border);
+    font-family: 'Inter', sans-serif; font-size: 15px; background: var(--surface);
+    color: var(--navy); width: 100%;
+  }
+  .form-input:focus {
+    outline: 2px solid var(--trvl-blue); border-color: var(--trvl-blue); background: white;
+  }
+
+  /* Pill / badge */
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 12px; border-radius: 999px;
+    font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600;
+    margin: 4px;
+  }
+  .pill-success {
+    background: var(--usdt-green-light); color: var(--usdt-green-dark);
+  }
+  .pill-info { background: var(--trvl-blue-50); color: var(--trvl-blue-dark); }
+  .pill-neutral { background: var(--surface); color: var(--muted); border: 1px solid var(--border); }
+  .pill-warning { background: var(--warning-bg); color: var(--warning); }
+  .pill .dot {
+    width: 6px; height: 6px; border-radius: 50%; background: currentColor;
+  }
+
+  /* Hero accent — "Pay in crypto" with green underline */
+  .accent-promise {
+    color: var(--trvl-blue);
+    background-image: linear-gradient(transparent 88%, var(--usdt-green) 88%, var(--usdt-green) 96%, transparent 96%);
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    padding: 0 0.05em;
+  }
+
+  /* Application example */
+  .app-mock {
+    background: var(--surface-2); border-radius: 24px; padding: 32px;
+    margin-top: 48px; border: 1px solid var(--border-soft); overflow: hidden;
+  }
+  .app-mock-frame {
+    background: var(--surface); border-radius: 16px; padding: 24px;
+    min-height: 420px;
+  }
+  .app-hero-eyebrow {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--trvl-blue); margin-bottom: 16px;
+  }
+  .app-hero-title {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 56px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.05;
+    color: var(--navy); margin-bottom: 16px;
+  }
+  .accent-promise {
+    color: var(--trvl-blue);
+    background-image: linear-gradient(180deg, transparent 70%, rgba(15, 169, 88, 0.35) 70%);
+    padding: 0 4px;
+  }
+  .app-hero-sub {
+    font-size: 17px; color: var(--muted); max-width: 480px; margin-bottom: 32px;
+  }
+  .search-mock {
+    background: white; border-radius: 16px; padding: 24px;
+    box-shadow: 0 4px 24px rgba(10, 27, 61, 0.06);
+    display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 12px; align-items: end;
+  }
+  .search-mock-cta {
+    background: var(--trvl-blue); color: white;
+    padding: 14px 28px; border-radius: 12px; font-weight: 600;
+    font-size: 15px; border: none; cursor: pointer; height: 50px;
+  }
+
+  /* Tailwind config block */
+  .config-block {
+    background: var(--navy); color: rgba(255,255,255,0.95);
+    border-radius: 16px; padding: 32px; margin-top: 32px;
+    font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.7;
+    overflow-x: auto;
+  }
+  .config-block .key { color: #79FCA0; }
+  .config-block .string { color: #B9C3FF; }
+  .config-block .comment { color: #6B7280; font-style: italic; }
+
+  /* Footer */
+  .footer {
+    background: var(--navy); color: rgba(255, 255, 255, 0.7);
+    padding: 64px 0; margin-top: 0;
+  }
+  .footer-inner {
+    max-width: 1280px; margin: 0 auto; padding: 0 32px;
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;
+    gap: 24px;
+  }
+  .footer-brand {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 18px; font-weight: 800; color: white; letter-spacing: -0.02em;
+  }
+  .footer-meta {
+    font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    text-transform: uppercase; letter-spacing: 0.1em;
+  }
+
+  @media (max-width: 900px) {
+    .cover-title { font-size: 64px; }
+    .section-title { font-size: 36px; }
+    .strategy-grid, .voice-grid, .components-grid, .imagery-cols { grid-template-columns: 1fr; gap: 24px; }
+    .pillars, .color-grid { grid-template-columns: 1fr 1fr; }
+    .icon-grid { grid-template-columns: repeat(3, 1fr); }
+    .logo-rules, .semantic-row { grid-template-columns: 1fr; }
+    .nav-links { display: none; }
+    .strategy-headline { font-size: 28px; }
+    .type-row { flex-direction: column; gap: 12px; }
+    .type-meta { width: auto; }
+    .type-sample.h1 { font-size: 44px; }
+    .type-sample.h2 { font-size: 32px; }
+    .search-mock { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="nav-logo">
+      <div class="nav-logo-mark"></div>
+      <div class="nav-logo-text">TRVL<span class="scan">scan</span></div>
+    </div>
+    <div class="nav-links">
+      <a href="#strategy">Strategy</a>
+      <a href="#voice">Voice</a>
+      <a href="#logo">Logo</a>
+      <a href="#color">Color</a>
+      <a href="#type">Type</a>
+      <a href="#imagery">Imagery</a>
+      <a href="#components">Components</a>
+      <a href="#application">Application</a>
+    </div>
+    <div class="nav-version">v1.0</div>
+  </div>
+</nav>
+
+<!-- COVER -->
+<section class="cover">
+  <div class="wrap">
+    <div class="cover-meta">
+      <span><span class="dot"></span>Internal · v1.0</span>
+      <span>April 2026</span>
+      <span>Living document</span>
+    </div>
+    <h1 class="cover-title">TRVLscan<br/>Brand<span class="accent">book</span>.</h1>
+    <p class="cover-sub">The strategic and visual foundation of TRVLscan — a global flight aggregator where you pay in crypto and fly anywhere. Skyscanner speed, Wise trust.</p>
+  </div>
+</section>
+
+<!-- STRATEGY -->
+<section id="strategy">
+  <div class="wrap">
+    <span class="section-label">01 · Strategy</span>
+    <h2 class="section-title">If you have crypto,<br/>you have the world.</h2>
+    <p class="section-lead">TRVLscan exists for one reason: to remove the friction between holding crypto and travelling the world. No banks, no FX games, no card forms, no waiting. Search. Pay. Fly.</p>
+
+    <div class="strategy-grid">
+      <div class="strategy-card dark">
+        <div class="strategy-eyebrow">Mission</div>
+        <div class="strategy-headline">Make global travel buyable with stablecoins.</div>
+        <p class="strategy-text">Today there are billions of dollars sitting in stablecoin wallets that can't directly buy a flight. We bridge that gap — connecting crypto holders to 500+ airlines worldwide through a single search.</p>
+      </div>
+
+      <div class="strategy-card">
+        <div class="strategy-eyebrow">Promise</div>
+        <div class="strategy-headline">Search. Pay. Fly.</div>
+        <p class="strategy-text">Three steps. Less than five minutes. From entering your route to receiving your e-ticket. We compete on speed and simplicity, not on luxury.</p>
+      </div>
+    </div>
+
+    <div class="pillars">
+      <div class="pillar">
+        <div class="pillar-num">01 · Audience</div>
+        <div class="pillar-title">Mass-market crypto holders</div>
+        <p class="pillar-desc">Anyone with USDT, USDC, or other stablecoins. Not just web3 natives — also remote workers paid in crypto, businesses in restricted markets, holders looking for utility.</p>
+      </div>
+      <div class="pillar">
+        <div class="pillar-num">02 · Position</div>
+        <div class="pillar-title">Skyscanner × Wise</div>
+        <p class="pillar-desc">The breadth and search UX of a flight aggregator. The trust, transparency, and warm clarity of a fintech app. Direct, helpful, never showy.</p>
+      </div>
+      <div class="pillar">
+        <div class="pillar-num">03 · Moat</div>
+        <div class="pillar-title">Crypto-native checkout</div>
+        <p class="pillar-desc">We don't bolt crypto onto a travel site. The whole funnel is built around it — pricing, payment, confirmation, ticket delivery. That's why it's fast.</p>
+      </div>
+      <div class="pillar">
+        <div class="pillar-num">04 · Roadmap</div>
+        <div class="pillar-title">Choose your stablecoin</div>
+        <p class="pillar-desc">Today: USDT on Tron. Tomorrow: USDC, BTC, ETH, BNB. The user picks the pair, we handle the conversion at live rates. The brand is built crypto-agnostic from day one.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- VOICE & TONE -->
+<section id="voice">
+  <div class="wrap">
+    <span class="section-label">02 · Voice &amp; Tone</span>
+    <h2 class="section-title">Direct. Clear. Helpful.</h2>
+    <p class="section-lead">We sound like a smart friend who happens to know the travel and crypto industries — never like a hedge fund pitch deck or a luxury concierge brochure. If a sentence makes us sound clever, we cut it.</p>
+
+    <div class="voice-grid">
+      <div class="voice-card yes">
+        <div class="voice-tag yes">Yes — write like this</div>
+        <div class="voice-quote">"Pay in crypto. Fly anywhere."</div>
+        <p class="voice-note">Concrete. Five words. Action + outcome. The reader knows exactly what they get.</p>
+      </div>
+      <div class="voice-card no">
+        <div class="voice-tag no">No — never write this</div>
+        <div class="voice-quote">"Cryptographic precision meets global mobility."</div>
+        <p class="voice-note">Vague. Performative. Sounds clever but says nothing about what you can do.</p>
+      </div>
+
+      <div class="voice-card yes">
+        <div class="voice-tag yes">Yes</div>
+        <div class="voice-quote">"Send only USDT on Tron. Other tokens will be lost."</div>
+        <p class="voice-note">A direct safety warning that protects the user's money. Specific token, specific network, specific consequence.</p>
+      </div>
+      <div class="voice-card no">
+        <div class="voice-tag no">No</div>
+        <div class="voice-quote">"Refined trust through invisible service layers."</div>
+        <p class="voice-note">Marketing-speak. We never use words like "refined", "curated", "elite", "concierge", "ecosystem".</p>
+      </div>
+
+      <div class="voice-card yes">
+        <div class="voice-tag yes">Yes</div>
+        <div class="voice-quote">"Choose your stablecoin. We'll handle the conversion."</div>
+        <p class="voice-note">Future-friendly framing. Works today (USDT only) and works tomorrow (USDC, BTC, ETH). Never write copy that pins us to a single token.</p>
+      </div>
+      <div class="voice-card no">
+        <div class="voice-tag no">No</div>
+        <div class="voice-quote">"USDT TRC-20 — the only way to pay."</div>
+        <p class="voice-note">Locks the brand into one rail. When we add USDC or BTC, every page with this copy needs rewriting. Avoid the trap.</p>
+      </div>
+    </div>
+
+    <div class="copy-rule">
+      <div class="copy-rule-title">The "crypto" vs "USDT on Tron" rule</div>
+      <p style="font-size: 15px; color: var(--muted); line-height: 1.6;">Marketing copy uses broad terms. UI in payment moments uses precise ones. This protects future flexibility (USDC, BTC, ETH) without ever risking that someone sends the wrong token.</p>
+      <table class="copy-rule-table">
+        <thead>
+          <tr><th style="width: 30%;">Surface</th><th>Use this</th><th>Never use this</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="level">Hero / marketing</td>
+            <td class="example">"Pay in crypto"</td>
+            <td>"Pay in USDT on Tron (TRC-20)"</td>
+          </tr>
+          <tr>
+            <td class="level">Feature page</td>
+            <td class="example">"Stablecoins supported"</td>
+            <td>"USDT TRC-20 only"</td>
+          </tr>
+          <tr>
+            <td class="level">Payment screen</td>
+            <td class="example">"Send only USDT on Tron (TRC-20)"</td>
+            <td>"Pay in crypto"</td>
+          </tr>
+          <tr>
+            <td class="level">Wallet warning</td>
+            <td class="example">"Other tokens or networks will be lost"</td>
+            <td>"Be careful with the network"</td>
+          </tr>
+          <tr>
+            <td class="level">Future / pair picker</td>
+            <td class="example">"Choose your stablecoin"</td>
+            <td>"Select your tokenized payment vehicle"</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- LOGO -->
+<section id="logo">
+  <div class="wrap">
+    <span class="section-label">03 · Logo</span>
+    <h2 class="section-title">One logo. Two colours.<br/>Built for speed.</h2>
+    <p class="section-lead">The TRVLscan logo combines a location pin (with motion lines) and a two-tone wordmark. The pin signals "where" — the motion lines signal "fast scan". Navy + bright blue keeps it readable on any travel context.</p>
+
+    <div class="logo-display">
+      <svg class="logo-svg" viewBox="0 0 600 180" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#4F7BFF"/>
+            <stop offset="100%" stop-color="#0033C1"/>
+          </linearGradient>
+        </defs>
+        <!-- Pin shape -->
+        <g transform="translate(40, 30)">
+          <path d="M 50 0 C 22 0 0 22 0 50 C 0 78 50 130 50 130 C 50 130 100 78 100 50 C 100 22 78 0 50 0 Z" fill="url(#logoGrad)"/>
+          <circle cx="50" cy="50" r="22" fill="white"/>
+          <circle cx="50" cy="50" r="12" fill="url(#logoGrad)"/>
+          <!-- Motion lines -->
+          <rect x="100" y="40" width="20" height="4" rx="2" fill="url(#logoGrad)" opacity="0.7"/>
+          <rect x="100" y="50" width="14" height="4" rx="2" fill="url(#logoGrad)" opacity="0.5"/>
+          <rect x="100" y="60" width="24" height="4" rx="2" fill="url(#logoGrad)" opacity="0.85"/>
+          <rect x="105" y="70" width="10" height="4" rx="2" fill="url(#logoGrad)" opacity="0.4"/>
+        </g>
+        <!-- Wordmark -->
+        <text x="180" y="115" font-family="Plus Jakarta Sans, sans-serif" font-weight="800" font-size="84" letter-spacing="-3">
+          <tspan fill="#0A1B3D">TRVL</tspan><tspan fill="#1B4FFF">scan</tspan>
+        </text>
+      </svg>
+    </div>
+
+    <div class="logo-rules">
+      <div class="logo-rule">
+        <div class="logo-rule-eyebrow">Clear space</div>
+        <div class="logo-rule-title">Always 1× the pin height</div>
+        <p class="logo-rule-desc">Reserve clear space around the logo equal to the height of the pin mark. Nothing — text, image, edge — should enter this zone.</p>
+      </div>
+      <div class="logo-rule">
+        <div class="logo-rule-eyebrow">Minimum size</div>
+        <div class="logo-rule-title">Don't go below 24px tall</div>
+        <p class="logo-rule-desc">For the full lockup, never render below 24px in height (digital) or 12mm (print). Below that, use the pin mark only.</p>
+      </div>
+      <div class="logo-rule">
+        <div class="logo-rule-eyebrow">Backgrounds</div>
+        <div class="logo-rule-title">White, surface, navy only</div>
+        <p class="logo-rule-desc">On dark backgrounds, the "TRVL" portion shifts to white. The "scan" portion stays bright blue. The pin keeps its gradient.</p>
+      </div>
+    </div>
+
+    <h3 style="font-family: 'Plus Jakarta Sans'; font-size: 20px; font-weight: 700; margin-top: 48px; margin-bottom: 16px;">Don't</h3>
+    <div class="logo-donts">
+      <div class="logo-dont"><div class="dont-icon">×</div><div class="logo-dont-text">Don't recolour the wordmark — TRVL stays navy, scan stays blue.</div></div>
+      <div class="logo-dont"><div class="dont-icon">×</div><div class="logo-dont-text">Don't stretch, skew, rotate or add drop-shadows.</div></div>
+      <div class="logo-dont"><div class="dont-icon">×</div><div class="logo-dont-text">Don't place over busy photos — only solid backgrounds.</div></div>
+      <div class="logo-dont"><div class="dont-icon">×</div><div class="logo-dont-text">Don't add taglines or sub-text inside the lockup.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- COLOR -->
+<section id="color">
+  <div class="wrap">
+    <span class="section-label">04 · Colour system</span>
+    <h2 class="section-title">A small palette<br/>used precisely.</h2>
+    <p class="section-lead">Four core colours plus a semantic set. Every colour has one job. We never use blue and green together as decoration — green appears only when something has been confirmed.</p>
+
+    <h3 style="font-family: 'Plus Jakarta Sans'; font-size: 22px; font-weight: 700; margin-top: 48px; margin-bottom: 8px;">Core</h3>
+    <div class="color-grid">
+      <div class="color-card">
+        <div class="color-swatch" style="background: #1B4FFF;"></div>
+        <div class="color-info">
+          <div class="color-name">TRVL Blue</div>
+          <div class="color-hex">#1B4FFF</div>
+          <div class="color-use">Primary CTA, links, brand elements, focus rings.</div>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background: #0A1B3D;"></div>
+        <div class="color-info">
+          <div class="color-name">Deep Navy</div>
+          <div class="color-hex">#0A1B3D</div>
+          <div class="color-use">Headlines, body text, dark UI surfaces, footers.</div>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background: #0FA958;"></div>
+        <div class="color-info">
+          <div class="color-name">USDT Green</div>
+          <div class="color-hex">#0FA958</div>
+          <div class="color-use">Confirmations, success states, "Verified" pills only.</div>
+        </div>
+      </div>
+      <div class="color-card">
+        <div class="color-swatch" style="background: #F7F7F8; border-bottom: 1px solid var(--border);"></div>
+        <div class="color-info">
+          <div class="color-name">Surface</div>
+          <div class="color-hex">#F7F7F8</div>
+          <div class="color-use">Page background, card fills, neutral zones.</div>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="font-family: 'Plus Jakarta Sans'; font-size: 22px; font-weight: 700; margin-top: 64px; margin-bottom: 8px;">TRVL Blue scale</h3>
+    <p style="font-size: 14px; color: var(--muted); margin-bottom: 8px;">For backgrounds, hover states, badges. Never use raw #1B4FFF as a background — too saturated. Use 50/100 instead.</p>
+    <div class="scale-row">
+      <div class="scale-block" style="background: #EEF2FF; color: #1B4FFF;"><span>Blue 50</span><span>#EEF2FF</span></div>
+      <div class="scale-block" style="background: #DDE5FF; color: #1B4FFF;"><span>Blue 100</span><span>#DDE5FF</span></div>
+      <div class="scale-block" style="background: #B9C3FF; color: #0033C1;"><span>Blue 200</span><span>#B9C3FF</span></div>
+      <div class="scale-block" style="background: #4F7BFF; color: white;"><span>Blue 400</span><span>#4F7BFF</span></div>
+      <div class="scale-block" style="background: #1B4FFF; color: white;"><span>Blue 600</span><span>#1B4FFF</span></div>
+      <div class="scale-block" style="background: #0033C1; color: white;"><span>Blue 800</span><span>#0033C1</span></div>
+      <div class="scale-block" style="background: #001F7A; color: white;"><span>Blue 900</span><span>#001F7A</span></div>
+    </div>
+
+    <h3 style="font-family: 'Plus Jakarta Sans'; font-size: 22px; font-weight: 700; margin-top: 48px; margin-bottom: 8px;">Semantic colours</h3>
+    <div class="semantic-row">
+      <div class="semantic-card" style="background: #E6F7EE; color: #087A3F;">
+        <div class="semantic-name">Success</div>
+        <div class="semantic-hex">#0FA958 · bg #E6F7EE</div>
+      </div>
+      <div class="semantic-card" style="background: #FEF3C7; color: #92400E;">
+        <div class="semantic-name">Warning</div>
+        <div class="semantic-hex">#D97706 · bg #FEF3C7</div>
+      </div>
+      <div class="semantic-card" style="background: #FEE2E2; color: #B91C1C;">
+        <div class="semantic-name">Error</div>
+        <div class="semantic-hex">#DC2626 · bg #FEE2E2</div>
+      </div>
+      <div class="semantic-card" style="background: #EEF2FF; color: #0033C1;">
+        <div class="semantic-name">Info</div>
+        <div class="semantic-hex">#1B4FFF · bg #EEF2FF</div>
+      </div>
+    </div>
+
+    <div class="config-block">
+<span class="comment">// tailwind.config.ts — drop into your project</span>
+theme: {
+  extend: {
+    colors: {
+      <span class="key">'trvl-blue'</span>: <span class="string">'#1B4FFF'</span>,
+      <span class="key">'trvl-blue-dark'</span>: <span class="string">'#0033C1'</span>,
+      <span class="key">'trvl-blue-light'</span>: <span class="string">'#4F7BFF'</span>,
+      <span class="key">'trvl-blue-50'</span>: <span class="string">'#EEF2FF'</span>,
+      <span class="key">'trvl-blue-100'</span>: <span class="string">'#DDE5FF'</span>,
+      <span class="key">'navy'</span>: <span class="string">'#0A1B3D'</span>,
+      <span class="key">'navy-soft'</span>: <span class="string">'#1A2B4D'</span>,
+      <span class="key">'usdt-green'</span>: <span class="string">'#0FA958'</span>,
+      <span class="key">'usdt-green-light'</span>: <span class="string">'#E6F7EE'</span>,
+      <span class="key">'surface'</span>: <span class="string">'#F7F7F8'</span>,
+    },
+    fontFamily: {
+      <span class="key">display</span>: [<span class="string">'Plus Jakarta Sans'</span>, <span class="string">'sans-serif'</span>],
+      <span class="key">body</span>: [<span class="string">'Inter'</span>, <span class="string">'sans-serif'</span>],
+      <span class="key">mono</span>: [<span class="string">'JetBrains Mono'</span>, <span class="string">'monospace'</span>],
+    },
+  },
+}
+    </div>
+  </div>
+</section>
+
+<!-- TYPOGRAPHY -->
+<section id="type">
+  <div class="wrap">
+    <span class="section-label">05 · Typography</span>
+    <h2 class="section-title">Two fonts.<br/>Strict hierarchy.</h2>
+    <p class="section-lead">Plus Jakarta Sans for everything that should grab attention. Inter for everything that needs to be read carefully. JetBrains Mono for codes, hashes, technical labels. That's it.</p>
+
+    <div style="margin-top: 64px;">
+      <div class="type-row">
+        <div class="type-meta">
+          <strong>Display H1</strong>
+          Plus Jakarta Sans · 800<br/>72px · -3.5% tracking<br/>1.05 line height
+        </div>
+        <div class="type-sample h1">Pay in crypto. Fly anywhere.</div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta">
+          <strong>Display H2</strong>
+          Plus Jakarta Sans · 800<br/>48px · -2.5% tracking
+        </div>
+        <div class="type-sample h2">Search 500+ airlines.</div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta">
+          <strong>Display H3</strong>
+          Plus Jakarta Sans · 700<br/>32px · -2% tracking
+        </div>
+        <div class="type-sample h3">Why pay in crypto?</div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta">
+          <strong>Heading H4</strong>
+          Plus Jakarta Sans · 700<br/>22px · -1% tracking
+        </div>
+        <div class="type-sample h4">Send only USDT on Tron.</div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta">
+          <strong>Body</strong>
+          Inter · 400<br/>16px · 1.6 line height
+        </div>
+        <div class="type-sample body">TRVLscan searches across 500+ airlines and gets you the cheapest fare. Pay with stablecoins from any wallet — your e-ticket arrives by email in seconds.</div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta">
+          <strong>Small / Caption</strong>
+          Inter · 400<br/>13px · 1.55 line height
+        </div>
+        <div class="type-sample small">Real-time exchange rates from frankfurter.app · 2.5% service fee included</div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta">
+          <strong>Mono</strong>
+          JetBrains Mono · 500<br/>13px · for codes &amp; addresses
+        </div>
+        <div class="type-sample mono">TS3zdex4ug4BYdddSMSd2c6uEttaDiCMXG</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ICONOGRAPHY -->
+<section id="icons">
+  <div class="wrap">
+    <span class="section-label">06 · Iconography</span>
+    <h2 class="section-title">Lucide icons. Line style.<br/>1.5px stroke.</h2>
+    <p class="section-lead">We use the Lucide icon library exclusively (lucide-react in our codebase). Line icons, 1.5px stroke, 24px default size. No filled variants, no Material Symbols, no custom drawings — consistency over personality.</p>
+
+    <div class="icon-grid">
+      <div class="icon-card">
+        <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 12l-4-4-4 4m4-4v9"/><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5"/></svg>
+        <div class="icon-name">plane / send</div>
+      </div>
+      <div class="icon-card">
+        <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"/></svg>
+        <div class="icon-name">map-pin</div>
+      </div>
+      <div class="icon-card">
+        <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.75 3.75 0 01-1.043 3.296 3.75 3.75 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z"/></svg>
+        <div class="icon-name">badge-check</div>
+      </div>
+      <div class="icon-card">
+        <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <div class="icon-name">clock</div>
+      </div>
+      <div class="icon-card">
+        <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
+        <div class="icon-name">alert-triangle</div>
+      </div>
+      <div class="icon-card">
+        <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z"/></svg>
+        <div class="icon-name">clipboard-copy</div>
+      </div>
+      <div class="icon-card">
+        <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z"/></svg>
+        <div class="icon-name">credit-card</div>
+      </div>
+      <div class="icon-card">
+        <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/></svg>
+        <div class="icon-name">shield-check</div>
+      </div>
+      <div class="icon-card">
+        <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z"/></svg>
+        <div class="icon-name">moon</div>
+      </div>
+      <div class="icon-card">
+        <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/></svg>
+        <div class="icon-name">zap</div>
+      </div>
+      <div class="icon-card">
+        <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9.75L9.75 15.75M9.75 9.75l6 6"/></svg>
+        <div class="icon-name">x-circle</div>
+      </div>
+      <div class="icon-card">
+        <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
+        <div class="icon-name">menu</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- IMAGERY -->
+<section id="imagery">
+  <div class="wrap">
+    <span class="section-label">07 · Imagery</span>
+    <h2 class="section-title">Real travel.<br/>Honest moments.</h2>
+    <p class="section-lead">No staged luxury balconies, no AI-generated faces, no stock-photo handshakes. We show real people in real travel situations — the airport queue, the boarding pass on a phone, the rooftop in a foreign city. Or we use simple flat illustrations (like our destination cards).</p>
+
+    <div class="imagery-cols">
+      <div class="imagery-col yes">
+        <h4>Use</h4>
+        <ul>
+          <li>Flat illustrations of cities and landmarks<span>Like the destination cards on the homepage. Limited palette, geometric, friendly.</span></li>
+          <li>Authentic travel photography<span>Phone in hand at a gate, a boarding pass, a rooftop view. Unposed, slightly imperfect.</span></li>
+          <li>Real screenshots of the product<span>Marketing should show the actual UI, not faked dashboards.</span></li>
+          <li>Aerial &amp; landscape shots without people<span>Skylines, runways, mountains, oceans — anything that signals "going somewhere".</span></li>
+        </ul>
+      </div>
+      <div class="imagery-col no">
+        <h4>Avoid</h4>
+        <ul>
+          <li>Luxury hotel balconies at sunset<span>Wrong audience. We're not a Six Senses concierge.</span></li>
+          <li>AI-generated portraits of "happy customers"<span>Always look fake, erode trust, and the eyes never quite work.</span></li>
+          <li>Crypto clichés<span>Glowing coins, bull/bear figurines, holographic chains, "blockchain" abstract networks.</span></li>
+          <li>Stock photo handshakes &amp; suit-wearing meetings<span>We are not a financial services firm pitching to a board.</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COMPONENTS -->
+<section id="components">
+  <div class="wrap">
+    <span class="section-label">08 · Components</span>
+    <h2 class="section-title">Generous radius.<br/>Soft shadows. Honest borders.</h2>
+    <p class="section-lead">Our components have rounded corners (12px default, 16px for cards, 24px for hero containers). Shadows are diffuse and tinted with navy, never plain black. Borders are 1px and used sparingly — usually we separate with surface luminosity instead.</p>
+
+    <div class="components-grid">
+      <div class="component-block">
+        <div class="component-label">Buttons</div>
+        <button class="btn btn-primary">Search flights</button>
+        <button class="btn btn-success">Confirm payment</button>
+        <button class="btn btn-secondary">Back</button>
+        <button class="btn btn-ghost">Learn more →</button>
+        <p style="font-size: 13px; color: var(--muted); margin-top: 16px; line-height: 1.6;">Primary = TRVL Blue, used once per screen for the main action. Success = USDT Green, only for confirmations. Secondary = surface fill, neutral. Ghost = no background, blue text.</p>
+      </div>
+
+      <div class="component-block">
+        <div class="component-label">Form inputs</div>
+        <div class="form-row">
+          <label class="form-label">From</label>
+          <input class="form-input" placeholder="Dubai (DXB)" />
+        </div>
+        <div class="form-row">
+          <label class="form-label">To</label>
+          <input class="form-input" placeholder="Bangkok (BKK)" />
+        </div>
+        <p style="font-size: 13px; color: var(--muted); margin-top: 4px; line-height: 1.6;">Always show a label above the input. Placeholder shows an example, never an instruction.</p>
+      </div>
+
+      <div class="component-block">
+        <div class="component-label">Pills &amp; badges</div>
+        <span class="pill pill-success"><span class="dot"></span>Verified</span>
+        <span class="pill pill-info">USDT · TRC-20</span>
+        <span class="pill pill-warning">Expires in 11:49</span>
+        <span class="pill pill-neutral">Round Trip</span>
+        <p style="font-size: 13px; color: var(--muted); margin-top: 16px; line-height: 1.6;">Pills are 999px radius. Always pair the colour with a clear meaning — green = verified/safe, blue = informational, amber = time-sensitive, neutral = filter or category.</p>
+      </div>
+
+      <div class="component-block">
+        <div class="component-label">Status messaging</div>
+        <div style="background: var(--warning-bg); color: var(--warning); padding: 12px 16px; border-radius: 12px; font-size: 14px; margin-bottom: 12px;">
+          <strong>Heads up.</strong> Send only USDT on Tron (TRC-20). Other tokens will be lost.
+        </div>
+        <div style="background: var(--usdt-green-light); color: var(--usdt-green-dark); padding: 12px 16px; border-radius: 12px; font-size: 14px;">
+          <strong>Payment confirmed.</strong> Your e-ticket is on the way.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- APPLICATION -->
+<section id="application">
+  <div class="wrap">
+    <span class="section-label">09 · In application</span>
+    <h2 class="section-title">How it all comes together.</h2>
+    <p class="section-lead">A preview of the homepage hero applying the brand system end-to-end — voice, type, colour, components, all working as one.</p>
+
+    <div style="background: var(--surface-2); border-left: 4px solid var(--trvl-blue); border-radius: 16px; padding: 24px 28px; margin-top: 32px;">
+      <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--trvl-blue); margin-bottom: 8px;">Hero headline rule</div>
+      <p style="font-size: 15px; line-height: 1.6; color: var(--navy); margin: 0;">The signature TRVLscan hero is built in two beats. <strong>Line 1 — "Fly anywhere."</strong> in Deep Navy. <strong>Line 2 — "Pay in crypto."</strong> in TRVL Blue with a USDT Green underline. Desire first, mechanism second. The green underline is reserved for this single phrase and never repeated elsewhere on the page.</p>
+    </div>
+
+    <div class="app-mock">
+      <div class="app-mock-frame">
+        <div class="app-hero-eyebrow"><span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--usdt-green); margin-right: 8px; vertical-align: middle;"></span>Live · 500+ airlines</div>
+        <h1 class="app-hero-title">Fly anywhere.<br/><span class="accent-promise">Pay in crypto.</span></h1>
+        <p class="app-hero-sub">Search the world's flights and pay with stablecoins from any wallet. Your e-ticket arrives in seconds.</p>
+        <div class="search-mock">
+          <div class="form-row" style="margin: 0;">
+            <label class="form-label">From</label>
+            <input class="form-input" value="Dubai (DXB)" style="background: white;" />
+          </div>
+          <div class="form-row" style="margin: 0;">
+            <label class="form-label">To</label>
+            <input class="form-input" value="Bangkok (BKK)" style="background: white;" />
+          </div>
+          <div class="form-row" style="margin: 0;">
+            <label class="form-label">Date</label>
+            <input class="form-input" value="May 15, 2026" style="background: white;" />
+          </div>
+          <button class="search-mock-cta">Search →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-brand">TRVLscan</div>
+    <div class="footer-meta">Brandbook v1.0 · April 2026 · Internal</div>
+  </div>
+</footer>
+
+</body>
+</html>
