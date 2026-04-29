@@ -14,21 +14,48 @@ type MultiCityLeg = {
 };
 
 const FONT_STACK = "'Plus Jakarta Sans', 'Inter', system-ui, sans-serif";
+const BODY_STACK = "'Inter', system-ui, sans-serif";
+
+const COLOR = {
+  trvlBlue: "#1B4FFF",
+  trvlBlueDark: "#0033C1",
+  trvlBlueLight: "#4F7BFF",
+  trvlBlue50: "#EEF2FF",
+  trvlBlue100: "#DDE5FF",
+  navy: "#0A1B3D",
+  navySoft: "#1A2B4D",
+  usdtGreen: "#0FA958",
+  usdtGreenLight: "#E6F7EE",
+  usdtGreenDark: "#087A3F",
+  surface: "#F7F7F8",
+  surface2: "#FFFFFF",
+  border: "#E5E7EB",
+  borderSoft: "#F0F1F3",
+  muted: "#6B7280",
+  mutedSoft: "#9CA3AF",
+  warning: "#D97706",
+  warningBg: "#FEF3C7",
+};
+
+const NAVY_SHADOW_SM = "0 2px 12px rgba(10, 27, 61, 0.05)";
+const NAVY_SHADOW_LG = "0 12px 40px rgba(10, 27, 61, 0.08)";
 
 const FIELD_LABEL_STYLE: React.CSSProperties = {
   fontSize: 11,
-  color: "#5F5E5A",
-  fontWeight: 500,
-  letterSpacing: 0.5,
+  color: COLOR.muted,
+  fontWeight: 600,
+  letterSpacing: "0.1em",
   textTransform: "uppercase",
-  marginBottom: 4,
+  marginBottom: 6,
+  fontFamily: BODY_STACK,
 };
 
 const FIELD_CHIP_STYLE: React.CSSProperties = {
-  padding: "10px 12px",
-  background: "#F5F7FA",
-  borderRadius: 10,
-  minHeight: 44,
+  padding: "12px 14px",
+  background: COLOR.surface,
+  borderRadius: 12,
+  minHeight: 52,
+  border: `1px solid ${COLOR.border}`,
 };
 
 const DESTINATIONS = [
@@ -43,6 +70,37 @@ const DESTINATIONS = [
 ];
 
 type DestinationIcon = (typeof DESTINATIONS)[number]["icon"];
+
+const FAQS: { q: string; a: string }[] = [
+  {
+    q: "Which crypto can I pay with?",
+    a: "Today we accept USDT on the Tron network (TRC-20). Support for USDC, BTC, ETH and BNB is on the way — once live, you'll pick your stablecoin at checkout.",
+  },
+  {
+    q: "How long does payment take?",
+    a: "USDT on Tron usually confirms in under a minute. As soon as the payment lands, we issue your e-ticket — most bookings are done end-to-end in under five minutes.",
+  },
+  {
+    q: "Do I need a crypto wallet?",
+    a: "Yes — any wallet that holds USDT on Tron works: Trust Wallet, Binance, OKX, Tronlink, hardware wallets, or any exchange that lets you withdraw on the Tron network. You scan the QR code or copy the address, then send.",
+  },
+  {
+    q: "Is this safe?",
+    a: "We never custody your funds. You pay the airline price plus a small service fee — no upsells, no hidden conversions. Tickets are issued by the airline directly through our travel partner.",
+  },
+  {
+    q: "What if my flight is cancelled?",
+    a: "Airline cancellations are refunded under the airline's own policy, just like a card booking. We coordinate the refund with the carrier and pay you back in USDT on Tron.",
+  },
+  {
+    q: "Can I get a refund if I change my mind?",
+    a: "It depends on the fare you picked. Each ticket shows its refund and change rules before you confirm — refundable fares can be cancelled for a USDT refund, non-refundable fares cannot.",
+  },
+  {
+    q: "Is the price I see the final price?",
+    a: "Yes. The USDT total on the search card is the total you pay. It already includes the live GBP→USD rate and our 2.5% service fee. Nothing is added at checkout.",
+  },
+];
 
 function deriveCity(fullName: string): string {
   if (!fullName) return "";
@@ -72,20 +130,64 @@ function nightsBetween(a: string, b: string): number {
   return Math.max(0, Math.round((d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24)));
 }
 
-function PlaneIcon({ color = "#1E5FFF", size = 16 }: { color?: string; size?: number }) {
+// Lucide-style line icons (1.5px stroke)
+function LucideIcon({
+  size = 20,
+  color = "currentColor",
+  children,
+}: {
+  size?: number;
+  color?: string;
+  children: React.ReactNode;
+}) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color}
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      {children}
     </svg>
   );
 }
 
-function PinIcon({ color = "#1E5FFF", size = 16 }: { color?: string; size?: number }) {
+function PlaneIcon({ color = COLOR.trvlBlue, size = 18 }: { color?: string; size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 22s-7-7-7-12a7 7 0 1 1 14 0c0 5-7 12-7 12z"/>
-      <circle cx="12" cy="10" r="2.5"/>
-    </svg>
+    <LucideIcon size={size} color={color}>
+      <path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z" />
+    </LucideIcon>
+  );
+}
+
+function PinIcon({ color = COLOR.trvlBlue, size = 18 }: { color?: string; size?: number }) {
+  return (
+    <LucideIcon size={size} color={color}>
+      <path d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0z" />
+      <circle cx="12" cy="10.5" r="3" />
+    </LucideIcon>
+  );
+}
+
+function ArrowRightIcon({ color = "currentColor", size = 16 }: { color?: string; size?: number }) {
+  return (
+    <LucideIcon size={size} color={color}>
+      <path d="M5 12h14" />
+      <path d="m12 5 7 7-7 7" />
+    </LucideIcon>
+  );
+}
+
+function ChevronDownIcon({ color = COLOR.trvlBlue, size = 18 }: { color?: string; size?: number }) {
+  return (
+    <LucideIcon size={size} color={color}>
+      <path d="m6 9 6 6 6-6" />
+    </LucideIcon>
   );
 }
 
@@ -196,6 +298,7 @@ export default function HomePage() {
     { origin: "", destination: "", date: "", originSelected: null, destinationSelected: null },
     { origin: "", destination: "", date: "", originSelected: null, destinationSelected: null },
   ]);
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
   const router = useRouter();
 
   const [multiCityOriginSuggestions, setMultiCityOriginSuggestions] = useState<AirportSuggestion[][]>([[], []]);
@@ -383,27 +486,35 @@ export default function HomePage() {
               value={query}
               placeholder={placeholder}
               onChange={(e) => onChange(e.target.value)}
-              className="w-full bg-transparent border-0 outline-none p-0 text-[14px] font-medium text-[#0B1F3A] placeholder:text-[#888780] placeholder:font-normal"
-              style={{ fontFamily: FONT_STACK }}
+              className="w-full bg-transparent border-0 outline-none p-0 text-[15px] font-medium placeholder:font-normal"
+              style={{ fontFamily: BODY_STACK, color: COLOR.navy }}
             />
             {selected && (
-              <div className="text-[11px] text-[#888780] truncate mt-[1px]">
+              <div className="text-[11px] truncate mt-[1px]" style={{ color: COLOR.muted }}>
                 {selected} · {query}
               </div>
             )}
           </div>
         </div>
         {suggestions.length > 0 && (
-          <div className="absolute left-0 right-0 top-full z-40 mt-1 max-h-[220px] overflow-y-auto rounded-xl bg-white shadow-lg border-[0.5px] border-[rgba(11,31,58,0.08)]">
+          <div
+            className="absolute left-0 right-0 top-full z-40 mt-1 max-h-[220px] overflow-y-auto rounded-xl"
+            style={{
+              background: COLOR.surface2,
+              border: `1px solid ${COLOR.borderSoft}`,
+              boxShadow: NAVY_SHADOW_LG,
+            }}
+          >
             {suggestions.map((suggestion) => (
               <button
                 key={`${suggestion.iata_code}-${suggestion.name}`}
                 type="button"
                 onClick={() => onPick(suggestion)}
-                className="w-full text-left px-3 py-2.5 text-[13px] text-[#0B1F3A] hover:bg-[#F5F7FA]"
+                className="w-full text-left px-3 py-2.5 text-[13px] hover:bg-[#F7F7F8]"
+                style={{ color: COLOR.navy }}
               >
-                <span className="font-medium">{suggestion.iata_code}</span>
-                <span className="text-[#888780]"> — {suggestion.name}</span>
+                <span className="font-semibold">{suggestion.iata_code}</span>
+                <span style={{ color: COLOR.muted }}> — {suggestion.name}</span>
               </button>
             ))}
           </div>
@@ -414,20 +525,20 @@ export default function HomePage() {
 
   const renderDateChip = (label: string, value: string, onChange: (v: string) => void, highlight = false) => (
     <div>
-      <div style={{ ...FIELD_LABEL_STYLE, color: highlight ? "#1E5FFF" : FIELD_LABEL_STYLE.color }}>{label}</div>
+      <div style={{ ...FIELD_LABEL_STYLE, color: highlight ? COLOR.trvlBlue : FIELD_LABEL_STYLE.color }}>{label}</div>
       <div
         className="relative"
         style={{
           ...FIELD_CHIP_STYLE,
-          background: highlight ? "#E6F1FB" : FIELD_CHIP_STYLE.background,
-          border: highlight ? "0.5px solid #85B7EB" : "0.5px solid transparent",
+          background: highlight ? COLOR.trvlBlue50 : FIELD_CHIP_STYLE.background,
+          border: highlight ? `1px solid ${COLOR.trvlBlue100}` : FIELD_CHIP_STYLE.border,
         }}
       >
         <div
-          className="text-[14px] font-medium pointer-events-none"
-          style={{ color: highlight ? "#185FA5" : "#0B1F3A" }}
+          className="text-[15px] font-medium pointer-events-none"
+          style={{ color: highlight ? COLOR.trvlBlueDark : COLOR.navy }}
         >
-          {value ? formatLongDate(value) : <span className="text-[#888780] font-normal">Select date</span>}
+          {value ? formatLongDate(value) : <span style={{ color: COLOR.muted, fontWeight: 400 }}>Select date</span>}
         </div>
         <input
           type="date"
@@ -447,40 +558,51 @@ export default function HomePage() {
           type="button"
           onClick={() => setShowPaxDropdown((v) => !v)}
           className="w-full text-left"
-          style={{ ...FIELD_CHIP_STYLE, border: "0.5px solid transparent" }}
+          style={FIELD_CHIP_STYLE}
         >
-          <div className="text-[14px] font-medium text-[#0B1F3A]">
+          <div className="text-[15px] font-medium" style={{ color: COLOR.navy }}>
             {totalPassengers} · {cabinClassLabel}
           </div>
         </button>
         {showPaxDropdown && (
           <div
             ref={compactLabel ? paxDropdownRef : undefined}
-            className="absolute top-full right-0 z-50 mt-2 w-72 bg-white rounded-2xl shadow-xl border-[0.5px] border-[rgba(11,31,58,0.08)] p-4"
+            className="absolute top-full right-0 z-50 mt-2 w-72 rounded-2xl p-4"
+            style={{
+              background: COLOR.surface2,
+              border: `1px solid ${COLOR.borderSoft}`,
+              boxShadow: NAVY_SHADOW_LG,
+            }}
           >
             {[
               { label: "Adults", sub: "Age 12+", value: adults, set: setAdults, min: 1 },
               { label: "Children", sub: "Age 2-11", value: children, set: setChildren, min: 0 },
               { label: "Infants", sub: "Age 0-1", value: infants, set: setInfants, min: 0 },
             ].map((row) => (
-              <div key={row.label} className="flex items-center justify-between py-2.5 border-b border-[rgba(11,31,58,0.08)]">
+              <div
+                key={row.label}
+                className="flex items-center justify-between py-2.5"
+                style={{ borderBottom: `1px solid ${COLOR.borderSoft}` }}
+              >
                 <div>
-                  <div className="text-[13px] font-medium text-[#0B1F3A]">{row.label}</div>
-                  <div className="text-[11px] text-[#888780]">{row.sub}</div>
+                  <div className="text-[13px] font-medium" style={{ color: COLOR.navy }}>{row.label}</div>
+                  <div className="text-[11px]" style={{ color: COLOR.muted }}>{row.sub}</div>
                 </div>
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={() => row.set(Math.max(row.min, row.value - 1))}
-                    className="w-7 h-7 rounded-full border-[0.5px] border-[rgba(11,31,58,0.16)] text-[#1E5FFF] font-medium"
+                    className="w-7 h-7 rounded-full font-medium"
+                    style={{ border: `1px solid ${COLOR.border}`, color: COLOR.trvlBlue }}
                   >
                     −
                   </button>
-                  <span className="w-5 text-center text-[13px] font-medium text-[#0B1F3A]">{row.value}</span>
+                  <span className="w-5 text-center text-[13px] font-medium" style={{ color: COLOR.navy }}>{row.value}</span>
                   <button
                     type="button"
                     onClick={() => row.set(Math.min(9, row.value + 1))}
-                    className="w-7 h-7 rounded-full border-[0.5px] border-[rgba(11,31,58,0.16)] text-[#1E5FFF] font-medium"
+                    className="w-7 h-7 rounded-full font-medium"
+                    style={{ border: `1px solid ${COLOR.border}`, color: COLOR.trvlBlue }}
                   >
                     +
                   </button>
@@ -488,7 +610,9 @@ export default function HomePage() {
               </div>
             ))}
             <div className="pt-3">
-              <div className="text-[10px] font-medium tracking-[1px] uppercase text-[#888780] mb-2">Cabin class</div>
+              <div className="text-[10px] font-semibold tracking-[0.1em] uppercase mb-2" style={{ color: COLOR.muted }}>
+                Cabin class
+              </div>
               <div className="grid grid-cols-2 gap-1.5">
                 {[
                   { value: "economy", label: "Economy" },
@@ -500,11 +624,11 @@ export default function HomePage() {
                     key={cls.value}
                     type="button"
                     onClick={() => setCabinClass(cls.value)}
-                    className="py-1.5 px-2 rounded-lg text-[12px] font-medium border-[0.5px] transition-colors"
+                    className="py-1.5 px-2 rounded-lg text-[12px] font-medium transition-colors"
                     style={{
-                      background: cabinClass === cls.value ? "#1E5FFF" : "#F5F7FA",
-                      color: cabinClass === cls.value ? "#FFFFFF" : "#0B1F3A",
-                      borderColor: cabinClass === cls.value ? "#1E5FFF" : "rgba(11,31,58,0.08)",
+                      background: cabinClass === cls.value ? COLOR.trvlBlue : COLOR.surface,
+                      color: cabinClass === cls.value ? "#FFFFFF" : COLOR.navy,
+                      border: cabinClass === cls.value ? `1px solid ${COLOR.trvlBlue}` : `1px solid ${COLOR.border}`,
                     }}
                   >
                     {cls.label}
@@ -515,7 +639,8 @@ export default function HomePage() {
             <button
               type="button"
               onClick={() => setShowPaxDropdown(false)}
-              className="w-full mt-4 py-2 bg-[#1E5FFF] text-white rounded-full text-[13px] font-medium"
+              className="w-full mt-4 py-2 rounded-xl text-[13px] font-semibold"
+              style={{ background: COLOR.trvlBlue, color: "#FFFFFF" }}
             >
               Done
             </button>
@@ -533,111 +658,203 @@ export default function HomePage() {
         : `Search ${multiCityLegs.length} flights`;
 
   return (
-    <main style={{ fontFamily: FONT_STACK, background: "#F5F7FA", minHeight: "100vh", color: "#0B1F3A" }}>
+    <main style={{ fontFamily: FONT_STACK, background: COLOR.surface, minHeight: "100vh", color: COLOR.navy }}>
       {/* NAVBAR */}
       <nav
-        className="fixed z-50 flex items-center justify-between"
+        className="sticky top-0 z-50"
         style={{
-          top: 12,
-          left: 12,
-          right: 12,
-          background: "#FFFFFF",
-          borderRadius: 12,
-          border: "0.5px solid rgba(11,31,58,0.08)",
-          padding: "12px 20px",
+          background: "rgba(247, 247, 248, 0.85)",
+          backdropFilter: "blur(20px) saturate(180%)",
+          WebkitBackdropFilter: "blur(20px) saturate(180%)",
+          borderBottom: `1px solid ${COLOR.borderSoft}`,
         }}
       >
-        <div className="flex items-center" style={{ gap: 32 }}>
-          <span style={{ fontSize: 18, fontWeight: 500, color: "#0B1F3A", letterSpacing: "-0.3px" }}>TRVLscan</span>
-          <a
-            href="#"
-            style={{
-              color: "#1E5FFF",
-              fontWeight: 500,
-              fontSize: 14,
-              paddingBottom: 2,
-              borderBottom: "2px solid #1E5FFF",
-            }}
-          >
-            Flights
-          </a>
-        </div>
-        <div className="flex items-center" style={{ gap: 12 }}>
-          <div
-            className="flex items-center"
-            style={{
-              background: "#E8F7EE",
-              color: "#0F6E56",
-              borderRadius: 999,
-              padding: "4px 10px",
-              fontSize: 12,
-              gap: 6,
-            }}
-          >
-            <span style={{ width: 6, height: 6, borderRadius: 999, background: "#1D9E75" }} />
-            <span className="hidden sm:inline">USDT · TRC-20</span>
-            <span className="sm:hidden">USDT</span>
+        <div
+          className="flex items-center justify-between mx-auto"
+          style={{ maxWidth: 1280, padding: "16px 32px" }}
+        >
+          <div className="flex items-center" style={{ gap: 10 }}>
+            <span
+              aria-hidden="true"
+              style={{
+                width: 28,
+                height: 28,
+                borderRadius: "50%",
+                background: `linear-gradient(135deg, ${COLOR.trvlBlue} 0%, ${COLOR.trvlBlueDark} 100%)`,
+                display: "inline-block",
+              }}
+            />
+            <span
+              style={{
+                fontFamily: FONT_STACK,
+                fontWeight: 800,
+                fontSize: 18,
+                letterSpacing: "-0.02em",
+                color: COLOR.navy,
+              }}
+            >
+              TRVL<span style={{ color: COLOR.trvlBlue }}>scan</span>
+            </span>
           </div>
-          <div
-            className="flex items-center justify-center"
-            style={{ width: 32, height: 32, borderRadius: 999, background: "#F1EFE8" }}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0B1F3A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="8" r="4" />
-              <path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8" />
-            </svg>
+          <div className="flex items-center" style={{ gap: 12 }}>
+            <div
+              className="flex items-center justify-center"
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 999,
+                background: COLOR.surface2,
+                border: `1px solid ${COLOR.border}`,
+              }}
+              aria-label="Account"
+            >
+              <LucideIcon size={16} color={COLOR.navy}>
+                <circle cx="12" cy="8" r="4" />
+                <path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8" />
+              </LucideIcon>
+            </div>
           </div>
         </div>
       </nav>
 
-      {/* CONTENT CONTAINER */}
-      <div style={{ paddingTop: 80, paddingBottom: 40 }}>
-        <div className="max-w-[1440px] mx-auto" style={{ padding: "0 12px" }}>
-          {/* SPLIT VIEW */}
-          <section className="grid grid-cols-1 lg:grid-cols-2" style={{ gap: 16 }}>
-            {/* LEFT — SEARCH FORM */}
-            <div
-              className="sm:p-5"
+      {/* HERO */}
+      <section style={{ padding: "96px 0 32px" }}>
+        <div className="mx-auto" style={{ maxWidth: 1280, padding: "0 32px" }}>
+          <div className="mx-auto text-center" style={{ maxWidth: 960 }}>
+            <div className="flex items-center justify-center" style={{ gap: 10, marginBottom: 24 }}>
+              <span
+                aria-hidden="true"
+                style={{
+                  position: "relative",
+                  width: 8,
+                  height: 8,
+                  borderRadius: 999,
+                  background: COLOR.usdtGreen,
+                  display: "inline-flex",
+                }}
+              >
+                <span
+                  aria-hidden="true"
+                  className="trvl-pulse"
+                  style={{
+                    position: "absolute",
+                    inset: -3,
+                    borderRadius: 999,
+                    background: COLOR.usdtGreen,
+                    opacity: 0.45,
+                  }}
+                />
+              </span>
+              <span
+                style={{
+                  fontFamily: BODY_STACK,
+                  fontSize: 11,
+                  fontWeight: 600,
+                  letterSpacing: "0.18em",
+                  textTransform: "uppercase",
+                  color: COLOR.muted,
+                }}
+              >
+                Live · 500+ airlines
+              </span>
+            </div>
+            <h1
+              className="text-[48px] sm:text-[64px] lg:text-[88px]"
               style={{
-                background: "#FFFFFF",
-                borderRadius: 16,
-                border: "0.5px solid rgba(11,31,58,0.08)",
-                padding: 16,
-                minHeight: 360,
+                fontFamily: FONT_STACK,
+                fontWeight: 800,
+                letterSpacing: "-0.04em",
+                lineHeight: 1.02,
+                color: COLOR.navy,
+                margin: 0,
               }}
             >
-              {/* TAB BAR */}
-              <div
-                className="flex"
-                style={{ background: "#F5F7FA", borderRadius: 10, padding: 4, marginBottom: 16 }}
+              Fly anywhere.
+              <br />
+              <span
+                style={{
+                  color: COLOR.trvlBlue,
+                  backgroundImage: `linear-gradient(180deg, transparent 70%, rgba(15, 169, 88, 0.35) 70%)`,
+                  padding: "0 4px",
+                }}
               >
-                {tabs.map((t) => {
-                  const active = tripType === t.key;
-                  return (
-                    <button
-                      key={t.key}
-                      type="button"
-                      onClick={() => setTripType(t.key)}
-                      className="flex-1"
-                      style={{
-                        background: active ? "#FFFFFF" : "transparent",
-                        color: active ? "#0B1F3A" : "#5F5E5A",
-                        fontWeight: 500,
-                        fontSize: 13,
-                        padding: "8px 0",
-                        borderRadius: 8,
-                        border: active ? "0.5px solid rgba(11,31,58,0.08)" : "0.5px solid transparent",
-                      }}
-                    >
-                      {t.label}
-                    </button>
-                  );
-                })}
-              </div>
+                Pay in crypto.
+              </span>
+            </h1>
+            <p
+              className="text-[17px] sm:text-[19px]"
+              style={{
+                fontFamily: BODY_STACK,
+                color: COLOR.muted,
+                lineHeight: 1.55,
+                marginTop: 28,
+                maxWidth: 600,
+                marginLeft: "auto",
+                marginRight: "auto",
+              }}
+            >
+              Search the world&apos;s flights and pay with stablecoins from any wallet. Your e-ticket arrives in seconds.
+            </p>
+          </div>
+        </div>
+      </section>
 
-              {/* FIELDS */}
-              {(tripType === "oneway" || tripType === "roundtrip") && (
-                <div className="flex flex-col" style={{ gap: 10 }}>
+      {/* SEARCH FORM */}
+      <section style={{ paddingBottom: 96 }}>
+        <div className="mx-auto" style={{ maxWidth: 1280, padding: "0 32px" }}>
+          <div
+            className="mx-auto"
+            style={{
+              maxWidth: 960,
+              background: COLOR.surface2,
+              borderRadius: 24,
+              border: `1px solid ${COLOR.borderSoft}`,
+              boxShadow: NAVY_SHADOW_LG,
+              padding: 24,
+            }}
+          >
+            {/* TAB BAR */}
+            <div
+              className="flex"
+              style={{
+                background: COLOR.surface,
+                borderRadius: 12,
+                padding: 4,
+                marginBottom: 20,
+                width: "fit-content",
+              }}
+            >
+              {tabs.map((t) => {
+                const active = tripType === t.key;
+                return (
+                  <button
+                    key={t.key}
+                    type="button"
+                    onClick={() => setTripType(t.key)}
+                    style={{
+                      background: active ? COLOR.surface2 : "transparent",
+                      color: active ? COLOR.navy : COLOR.muted,
+                      fontWeight: 600,
+                      fontSize: 13,
+                      padding: "8px 18px",
+                      borderRadius: 8,
+                      border: active ? `1px solid ${COLOR.borderSoft}` : "1px solid transparent",
+                      boxShadow: active ? NAVY_SHADOW_SM : "none",
+                    }}
+                  >
+                    {t.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* FIELDS */}
+            {(tripType === "oneway" || tripType === "roundtrip") && (
+              <div className="flex flex-col" style={{ gap: 14 }}>
+                <div
+                  className="grid grid-cols-1 lg:grid-cols-2 lg:items-end"
+                  style={{ gap: 14, position: "relative" }}
+                >
                   {renderAirportField(
                     "FROM",
                     <PlaneIcon />,
@@ -654,31 +871,8 @@ export default function HomePage() {
                       setOriginSelected(s.iata_code);
                       setOriginSuggestions([]);
                     },
-                    "Select departure city",
+                    "Departure city or airport",
                   )}
-
-                  <div className="flex justify-end" style={{ marginTop: -4, marginBottom: -4 }}>
-                    <button
-                      type="button"
-                      onClick={swapOriginDestination}
-                      className="flex items-center justify-center"
-                      style={{
-                        width: 28,
-                        height: 28,
-                        borderRadius: 999,
-                        background: "#F5F7FA",
-                        color: "#1E5FFF",
-                        border: "0.5px solid rgba(11,31,58,0.08)",
-                      }}
-                      aria-label="Swap origin and destination"
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M7 10h14l-4-4" />
-                        <path d="M17 14H3l4 4" />
-                      </svg>
-                    </button>
-                  </div>
-
                   {renderAirportField(
                     "TO",
                     <PinIcon />,
@@ -695,460 +889,726 @@ export default function HomePage() {
                       setDestinationSelected(s.iata_code);
                       setDestinationSuggestions([]);
                     },
-                    "Select arrival city",
+                    "Arrival city or airport",
                   )}
+                  <button
+                    type="button"
+                    onClick={swapOriginDestination}
+                    aria-label="Swap origin and destination"
+                    className="hidden lg:flex items-center justify-center"
+                    style={{
+                      position: "absolute",
+                      left: "50%",
+                      bottom: 8,
+                      transform: "translateX(-50%)",
+                      width: 36,
+                      height: 36,
+                      borderRadius: 999,
+                      background: COLOR.surface2,
+                      color: COLOR.trvlBlue,
+                      border: `1px solid ${COLOR.border}`,
+                      boxShadow: NAVY_SHADOW_SM,
+                    }}
+                  >
+                    <LucideIcon size={16} color={COLOR.trvlBlue}>
+                      <path d="M7 10h14l-4-4" />
+                      <path d="M17 14H3l4 4" />
+                    </LucideIcon>
+                  </button>
+                </div>
 
-                  {tripType === "oneway" ? (
-                    <div className="grid grid-cols-2" style={{ gap: 10 }}>
-                      {renderDateChip("DATE", date, setDate)}
-                      {renderPassengersChip()}
+                {tripType === "oneway" ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2" style={{ gap: 14 }}>
+                    {renderDateChip("DATE", date, setDate)}
+                    {renderPassengersChip()}
+                  </div>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" style={{ gap: 14 }}>
+                      {renderDateChip("DEPART", date, setDate)}
+                      {renderDateChip("RETURN", returnDate, setReturnDate, true)}
+                      <div className="sm:col-span-2 lg:col-span-1">{renderPassengersChip()}</div>
                     </div>
-                  ) : (
-                    <>
-                      <div className="grid grid-cols-2" style={{ gap: 10 }}>
-                        {renderDateChip("DEPART", date, setDate)}
-                        {renderDateChip("RETURN", returnDate, setReturnDate, true)}
-                      </div>
+                    {date && returnDate && (
                       <div
                         className="flex items-center"
                         style={{
-                          background: "#EEEDFE",
-                          padding: "8px 12px",
-                          borderRadius: 8,
-                          gap: 8,
-                          marginBottom: 2,
+                          background: COLOR.trvlBlue50,
+                          padding: "10px 14px",
+                          borderRadius: 10,
+                          gap: 10,
                         }}
                       >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#534AB7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <LucideIcon size={14} color={COLOR.trvlBlueDark}>
                           <path d="M3 12h18" />
                           <path d="M15 6l6 6-6 6" />
                           <path d="M9 18l-6-6 6-6" />
-                        </svg>
-                        <span style={{ fontSize: 11, color: "#3C3489", fontWeight: 500 }}>
-                          {nightsBetween(date, returnDate)} nights · Return trip · Often 30% cheaper than 2 one-ways
+                        </LucideIcon>
+                        <span style={{ fontFamily: BODY_STACK, fontSize: 12, color: COLOR.trvlBlueDark, fontWeight: 500 }}>
+                          {nightsBetween(date, returnDate)} nights · Round trip
                         </span>
                       </div>
-                      {renderPassengersChip()}
-                    </>
-                  )}
-                </div>
-              )}
+                    )}
+                  </>
+                )}
 
-              {tripType === "multicity" && (
-                <div className="flex flex-col" style={{ gap: 10 }}>
-                  {multiCityRows.map((leg, idx) => (
-                    <div key={idx} className="flex items-end" style={{ gap: 10 }}>
-                      <div
-                        className="flex items-center justify-center flex-shrink-0"
-                        style={{
-                          width: 22,
-                          height: 22,
-                          borderRadius: 999,
-                          background: "#1E5FFF",
-                          color: "#FFFFFF",
-                          fontSize: 11,
-                          fontWeight: 500,
-                          marginBottom: 6,
-                        }}
-                      >
-                        {idx + 1}
-                      </div>
-                      <div
-                        className="flex-1"
-                        style={{ display: "grid", gridTemplateColumns: "1fr 1fr auto", gap: 6 }}
-                      >
-                        {/* FROM */}
-                        <div className="relative">
-                          <div style={{ ...FIELD_CHIP_STYLE, padding: "8px 10px", borderRadius: 8 }}>
-                            <div style={{ fontSize: 10, color: "#888780" }}>FROM</div>
-                            <input
-                              type="text"
-                              value={leg.originSelected ?? leg.origin}
-                              placeholder="DXB"
-                              onChange={(e) => {
-                                const value = e.target.value.toUpperCase();
-                                setMultiCityLegs((prev) =>
-                                  prev.map((l, i) => (i === idx ? { ...l, origin: value, originSelected: null } : l)),
-                                );
-                                searchAirports(value, (suggestions) => {
-                                  setMultiCityOriginSuggestions((prev) => prev.map((arr, i) => (i === idx ? suggestions : arr)));
-                                });
-                              }}
-                              className="w-full bg-transparent border-0 outline-none p-0 text-[13px] font-medium text-[#0B1F3A] uppercase placeholder:text-[#888780] placeholder:font-normal"
-                              style={{ fontFamily: FONT_STACK }}
-                            />
-                          </div>
-                          {(multiCityOriginSuggestions[idx] ?? []).length > 0 && (
-                            <div className="absolute left-0 right-0 top-full z-40 mt-1 max-h-[200px] overflow-y-auto rounded-xl bg-white shadow-lg border-[0.5px] border-[rgba(11,31,58,0.08)]">
-                              {(multiCityOriginSuggestions[idx] ?? []).map((s) => (
-                                <button
-                                  key={`mcO-${idx}-${s.iata_code}-${s.name}`}
-                                  type="button"
-                                  onClick={() => {
-                                    setMultiCityLegs((prev) =>
-                                      prev.map((l, i) => (i === idx ? { ...l, origin: s.iata_code, originSelected: s.iata_code } : l)),
-                                    );
-                                    setMultiCityOriginSuggestions((prev) => prev.map((arr, i) => (i === idx ? [] : arr)));
-                                  }}
-                                  className="w-full text-left px-3 py-2.5 text-[13px] text-[#0B1F3A] hover:bg-[#F5F7FA]"
-                                >
-                                  <span className="font-medium">{s.iata_code}</span>
-                                  <span className="text-[#888780]"> — {s.name}</span>
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* TO */}
-                        <div className="relative">
-                          <div style={{ ...FIELD_CHIP_STYLE, padding: "8px 10px", borderRadius: 8 }}>
-                            <div style={{ fontSize: 10, color: "#888780" }}>TO</div>
-                            <input
-                              type="text"
-                              value={leg.destinationSelected ?? leg.destination}
-                              placeholder="LHR"
-                              onChange={(e) => {
-                                const value = e.target.value.toUpperCase();
-                                setMultiCityLegs((prev) =>
-                                  prev.map((l, i) => (i === idx ? { ...l, destination: value, destinationSelected: null } : l)),
-                                );
-                                searchAirports(value, (suggestions) => {
-                                  setMultiCityDestinationSuggestions((prev) => prev.map((arr, i) => (i === idx ? suggestions : arr)));
-                                });
-                              }}
-                              className="w-full bg-transparent border-0 outline-none p-0 text-[13px] font-medium text-[#0B1F3A] uppercase placeholder:text-[#888780] placeholder:font-normal"
-                              style={{ fontFamily: FONT_STACK }}
-                            />
-                          </div>
-                          {(multiCityDestinationSuggestions[idx] ?? []).length > 0 && (
-                            <div className="absolute left-0 right-0 top-full z-40 mt-1 max-h-[200px] overflow-y-auto rounded-xl bg-white shadow-lg border-[0.5px] border-[rgba(11,31,58,0.08)]">
-                              {(multiCityDestinationSuggestions[idx] ?? []).map((s) => (
-                                <button
-                                  key={`mcD-${idx}-${s.iata_code}-${s.name}`}
-                                  type="button"
-                                  onClick={() => {
-                                    setMultiCityLegs((prev) =>
-                                      prev.map((l, i) => (i === idx ? { ...l, destination: s.iata_code, destinationSelected: s.iata_code } : l)),
-                                    );
-                                    setMultiCityDestinationSuggestions((prev) => prev.map((arr, i) => (i === idx ? [] : arr)));
-                                  }}
-                                  className="w-full text-left px-3 py-2.5 text-[13px] text-[#0B1F3A] hover:bg-[#F5F7FA]"
-                                >
-                                  <span className="font-medium">{s.iata_code}</span>
-                                  <span className="text-[#888780]"> — {s.name}</span>
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* DATE */}
-                        <div className="relative">
-                          <div
-                            className="relative"
-                            style={{ ...FIELD_CHIP_STYLE, padding: "8px 10px", borderRadius: 8, textAlign: "center", whiteSpace: "nowrap", minWidth: 72 }}
-                          >
-                            <div style={{ fontSize: 10, color: "#888780" }}>DATE</div>
-                            <div style={{ fontSize: 13, fontWeight: 500, color: "#0B1F3A" }}>
-                              {leg.date ? formatShortDate(leg.date) : <span style={{ color: "#888780", fontWeight: 400 }}>Pick</span>}
-                            </div>
-                            <input
-                              type="date"
-                              value={leg.date}
-                              onChange={(e) => {
-                                const value = e.target.value;
-                                setMultiCityLegs((prev) => prev.map((l, i) => (i === idx ? { ...l, date: value } : l)));
-                              }}
-                              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                            />
-                          </div>
-                          {idx >= 2 && (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setMultiCityLegs((prev) => prev.filter((_, i) => i !== idx));
-                                setMultiCityOriginSuggestions((prev) => prev.filter((_, i) => i !== idx));
-                                setMultiCityDestinationSuggestions((prev) => prev.filter((_, i) => i !== idx));
-                              }}
-                              className="absolute flex items-center justify-center"
-                              style={{
-                                top: -6,
-                                right: -6,
-                                width: 18,
-                                height: 18,
-                                borderRadius: 999,
-                                background: "#FCEBEB",
-                                border: "0.5px solid #F09595",
-                              }}
-                              aria-label="Remove flight"
-                            >
-                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#A32D2D" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M18 6L6 18M6 6l12 12" />
-                              </svg>
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-
-                  <button
-                    type="button"
-                    disabled={multiCityLegs.length >= 5}
-                    onClick={() => {
-                      setMultiCityLegs((prev) => {
-                        const next = [
-                          ...prev,
-                          { origin: "", destination: "", date: "", originSelected: null, destinationSelected: null },
-                        ];
-                        ensureMultiCitySuggestionSlots(next.length);
-                        return next;
-                      });
-                    }}
-                    className="flex items-center justify-center"
-                    style={{
-                      width: "100%",
-                      padding: 8,
-                      background: "transparent",
-                      border: "1px dashed #1E5FFF",
-                      color: "#1E5FFF",
-                      borderRadius: 10,
-                      fontSize: 12,
-                      fontWeight: 500,
-                      gap: 6,
-                      opacity: multiCityLegs.length >= 5 ? 0.5 : 1,
-                      cursor: multiCityLegs.length >= 5 ? "not-allowed" : "pointer",
-                    }}
-                  >
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                      <path d="M12 5v14M5 12h14" />
-                    </svg>
-                    Add another flight
-                  </button>
-
-                  {renderPassengersChip()}
-                </div>
-              )}
-
-              {/* ACTION BUTTON */}
-              <button
-                type="button"
-                onClick={handleSearch}
-                className="flex items-center justify-center w-full transition-colors"
-                style={{
-                  marginTop: 16,
-                  padding: "13px 0",
-                  background: "#1E5FFF",
-                  color: "#FFFFFF",
-                  borderRadius: 24,
-                  fontSize: 15,
-                  fontWeight: 500,
-                  gap: 8,
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = "#1754E8")}
-                onMouseLeave={(e) => (e.currentTarget.style.background = "#1E5FFF")}
-              >
-                <PlaneIcon color="#FFFFFF" size={16} />
-                {buttonLabel}
-              </button>
-            </div>
-
-            {/* RIGHT — HERO */}
-            <div
-              className="relative overflow-hidden flex flex-col justify-between text-white"
-              style={{
-                borderRadius: 16,
-                background: "linear-gradient(135deg, #0B1F3A 0%, #1a3a6b 100%)",
-                padding: 24,
-                minHeight: 360,
-              }}
-            >
-              {/* top-right pill */}
-              <div
-                className="absolute flex items-center"
-                style={{
-                  top: 16,
-                  right: 16,
-                  background: "rgba(29,158,117,0.25)",
-                  color: "#9FE1CB",
-                  padding: "4px 10px",
-                  borderRadius: 999,
-                  fontSize: 12,
-                  gap: 6,
-                }}
-              >
-                <span style={{ width: 6, height: 6, borderRadius: 999, background: "#1D9E75" }} />
-                USDT · TRC-20
-              </div>
-
-              {/* top block */}
-              <div>
-                <h1
-                  className="text-[24px] sm:text-[28px] lg:text-[32px]"
-                  style={{ lineHeight: 1.05, fontWeight: 500, letterSpacing: "-1px" }}
-                >
-                  Fly anywhere.
-                  <br />
-                  Pay in <span style={{ color: "#85B7EB" }}>crypto</span>
-                  <span style={{ color: "#FFFFFF" }}>.</span>
-                </h1>
-                <p
+                <button
+                  type="button"
+                  onClick={handleSearch}
+                  className="flex items-center justify-center w-full transition-colors"
                   style={{
-                    marginTop: 12,
-                    fontSize: 13,
-                    color: "#B5D4F4",
-                    lineHeight: 1.5,
-                    maxWidth: 300,
+                    marginTop: 4,
+                    padding: "16px 24px",
+                    background: COLOR.trvlBlue,
+                    color: "#FFFFFF",
+                    borderRadius: 16,
+                    fontSize: 15,
+                    fontWeight: 600,
+                    gap: 10,
+                    fontFamily: BODY_STACK,
                   }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = COLOR.trvlBlueDark)}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = COLOR.trvlBlue)}
                 >
-                  Access global aviation networks and pay instantly with USDT on the world&apos;s most secure travel rails.
-                </p>
+                  {buttonLabel}
+                  <ArrowRightIcon color="#FFFFFF" />
+                </button>
               </div>
+            )}
 
-              {/* bottom block */}
-              <div className="flex items-end" style={{ gap: 16, marginTop: 16 }}>
-                <div
-                  className="flex-1"
-                  style={{
-                    background: "#FFFFFF",
-                    borderRadius: 12,
-                    padding: "12px 14px",
-                    boxShadow: "0 8px 24px rgba(0,0,0,0.2)",
-                  }}
-                >
-                  <div className="flex items-center justify-between">
-                    <span
+            {tripType === "multicity" && (
+              <div className="flex flex-col" style={{ gap: 12 }}>
+                {multiCityRows.map((leg, idx) => (
+                  <div key={idx} className="flex items-end" style={{ gap: 10 }}>
+                    <div
+                      className="flex items-center justify-center flex-shrink-0"
                       style={{
-                        fontSize: 10,
-                        color: "#888780",
-                        fontWeight: 500,
-                        letterSpacing: 0.5,
-                        textTransform: "uppercase",
+                        width: 24,
+                        height: 24,
+                        borderRadius: 999,
+                        background: COLOR.trvlBlue,
+                        color: "#FFFFFF",
+                        fontSize: 11,
+                        fontWeight: 700,
+                        marginBottom: 14,
                       }}
                     >
-                      Verified USDT Payment
-                    </span>
-                    <span
-                      className="flex items-center justify-center"
-                      style={{ width: 16, height: 16, borderRadius: 999, background: "#1D9E75" }}
+                      {idx + 1}
+                    </div>
+                    <div
+                      className="flex-1"
+                      style={{ display: "grid", gridTemplateColumns: "1fr 1fr auto", gap: 8 }}
                     >
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M5 12l5 5L20 7" />
-                      </svg>
-                    </span>
+                      {/* FROM */}
+                      <div className="relative">
+                        <div style={FIELD_LABEL_STYLE}>FROM</div>
+                        <div style={{ ...FIELD_CHIP_STYLE, padding: "10px 12px", minHeight: 44 }}>
+                          <input
+                            type="text"
+                            value={leg.originSelected ?? leg.origin}
+                            placeholder="DXB"
+                            onChange={(e) => {
+                              const value = e.target.value.toUpperCase();
+                              setMultiCityLegs((prev) =>
+                                prev.map((l, i) => (i === idx ? { ...l, origin: value, originSelected: null } : l)),
+                              );
+                              searchAirports(value, (suggestions) => {
+                                setMultiCityOriginSuggestions((prev) => prev.map((arr, i) => (i === idx ? suggestions : arr)));
+                              });
+                            }}
+                            className="w-full bg-transparent border-0 outline-none p-0 text-[14px] font-medium uppercase placeholder:font-normal"
+                            style={{ fontFamily: BODY_STACK, color: COLOR.navy }}
+                          />
+                        </div>
+                        {(multiCityOriginSuggestions[idx] ?? []).length > 0 && (
+                          <div
+                            className="absolute left-0 right-0 top-full z-40 mt-1 max-h-[200px] overflow-y-auto rounded-xl"
+                            style={{
+                              background: COLOR.surface2,
+                              border: `1px solid ${COLOR.borderSoft}`,
+                              boxShadow: NAVY_SHADOW_LG,
+                            }}
+                          >
+                            {(multiCityOriginSuggestions[idx] ?? []).map((s) => (
+                              <button
+                                key={`mcO-${idx}-${s.iata_code}-${s.name}`}
+                                type="button"
+                                onClick={() => {
+                                  setMultiCityLegs((prev) =>
+                                    prev.map((l, i) => (i === idx ? { ...l, origin: s.iata_code, originSelected: s.iata_code } : l)),
+                                  );
+                                  setMultiCityOriginSuggestions((prev) => prev.map((arr, i) => (i === idx ? [] : arr)));
+                                }}
+                                className="w-full text-left px-3 py-2.5 text-[13px] hover:bg-[#F7F7F8]"
+                                style={{ color: COLOR.navy }}
+                              >
+                                <span className="font-semibold">{s.iata_code}</span>
+                                <span style={{ color: COLOR.muted }}> — {s.name}</span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* TO */}
+                      <div className="relative">
+                        <div style={FIELD_LABEL_STYLE}>TO</div>
+                        <div style={{ ...FIELD_CHIP_STYLE, padding: "10px 12px", minHeight: 44 }}>
+                          <input
+                            type="text"
+                            value={leg.destinationSelected ?? leg.destination}
+                            placeholder="LHR"
+                            onChange={(e) => {
+                              const value = e.target.value.toUpperCase();
+                              setMultiCityLegs((prev) =>
+                                prev.map((l, i) => (i === idx ? { ...l, destination: value, destinationSelected: null } : l)),
+                              );
+                              searchAirports(value, (suggestions) => {
+                                setMultiCityDestinationSuggestions((prev) => prev.map((arr, i) => (i === idx ? suggestions : arr)));
+                              });
+                            }}
+                            className="w-full bg-transparent border-0 outline-none p-0 text-[14px] font-medium uppercase placeholder:font-normal"
+                            style={{ fontFamily: BODY_STACK, color: COLOR.navy }}
+                          />
+                        </div>
+                        {(multiCityDestinationSuggestions[idx] ?? []).length > 0 && (
+                          <div
+                            className="absolute left-0 right-0 top-full z-40 mt-1 max-h-[200px] overflow-y-auto rounded-xl"
+                            style={{
+                              background: COLOR.surface2,
+                              border: `1px solid ${COLOR.borderSoft}`,
+                              boxShadow: NAVY_SHADOW_LG,
+                            }}
+                          >
+                            {(multiCityDestinationSuggestions[idx] ?? []).map((s) => (
+                              <button
+                                key={`mcD-${idx}-${s.iata_code}-${s.name}`}
+                                type="button"
+                                onClick={() => {
+                                  setMultiCityLegs((prev) =>
+                                    prev.map((l, i) => (i === idx ? { ...l, destination: s.iata_code, destinationSelected: s.iata_code } : l)),
+                                  );
+                                  setMultiCityDestinationSuggestions((prev) => prev.map((arr, i) => (i === idx ? [] : arr)));
+                                }}
+                                className="w-full text-left px-3 py-2.5 text-[13px] hover:bg-[#F7F7F8]"
+                                style={{ color: COLOR.navy }}
+                              >
+                                <span className="font-semibold">{s.iata_code}</span>
+                                <span style={{ color: COLOR.muted }}> — {s.name}</span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* DATE */}
+                      <div className="relative">
+                        <div style={FIELD_LABEL_STYLE}>DATE</div>
+                        <div
+                          className="relative"
+                          style={{
+                            ...FIELD_CHIP_STYLE,
+                            padding: "10px 12px",
+                            minHeight: 44,
+                            textAlign: "center",
+                            whiteSpace: "nowrap",
+                            minWidth: 88,
+                          }}
+                        >
+                          <div style={{ fontSize: 14, fontWeight: 500, color: COLOR.navy }}>
+                            {leg.date ? formatShortDate(leg.date) : <span style={{ color: COLOR.muted, fontWeight: 400 }}>Pick</span>}
+                          </div>
+                          <input
+                            type="date"
+                            value={leg.date}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              setMultiCityLegs((prev) => prev.map((l, i) => (i === idx ? { ...l, date: value } : l)));
+                            }}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                          />
+                        </div>
+                        {idx >= 2 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setMultiCityLegs((prev) => prev.filter((_, i) => i !== idx));
+                              setMultiCityOriginSuggestions((prev) => prev.filter((_, i) => i !== idx));
+                              setMultiCityDestinationSuggestions((prev) => prev.filter((_, i) => i !== idx));
+                            }}
+                            className="absolute flex items-center justify-center"
+                            style={{
+                              top: 14,
+                              right: -8,
+                              width: 20,
+                              height: 20,
+                              borderRadius: 999,
+                              background: "#FEE2E2",
+                              border: `1px solid #FCA5A5`,
+                            }}
+                            aria-label="Remove flight"
+                          >
+                            <LucideIcon size={10} color="#B91C1C">
+                              <path d="M18 6L6 18M6 6l12 12" />
+                            </LucideIcon>
+                          </button>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  <div style={{ marginTop: 4, fontSize: 22, fontWeight: 500, color: "#0B1F3A" }}>
-                    4,281.00 <span style={{ fontSize: 11, fontWeight: 400, color: "#888780" }}>USDT</span>
+                ))}
+
+                <button
+                  type="button"
+                  disabled={multiCityLegs.length >= 5}
+                  onClick={() => {
+                    setMultiCityLegs((prev) => {
+                      const next = [
+                        ...prev,
+                        { origin: "", destination: "", date: "", originSelected: null, destinationSelected: null },
+                      ];
+                      ensureMultiCitySuggestionSlots(next.length);
+                      return next;
+                    });
+                  }}
+                  className="flex items-center justify-center"
+                  style={{
+                    width: "100%",
+                    padding: 12,
+                    background: "transparent",
+                    border: `1px dashed ${COLOR.trvlBlue}`,
+                    color: COLOR.trvlBlue,
+                    borderRadius: 12,
+                    fontSize: 13,
+                    fontWeight: 600,
+                    gap: 6,
+                    opacity: multiCityLegs.length >= 5 ? 0.5 : 1,
+                    cursor: multiCityLegs.length >= 5 ? "not-allowed" : "pointer",
+                  }}
+                >
+                  <LucideIcon size={14} color="currentColor">
+                    <path d="M12 5v14M5 12h14" />
+                  </LucideIcon>
+                  Add another flight
+                </button>
+
+                {renderPassengersChip()}
+
+                <button
+                  type="button"
+                  onClick={handleSearch}
+                  className="flex items-center justify-center w-full transition-colors"
+                  style={{
+                    marginTop: 4,
+                    padding: "14px 24px",
+                    background: COLOR.trvlBlue,
+                    color: "#FFFFFF",
+                    borderRadius: 12,
+                    fontSize: 15,
+                    fontWeight: 600,
+                    gap: 10,
+                    fontFamily: BODY_STACK,
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = COLOR.trvlBlueDark)}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = COLOR.trvlBlue)}
+                >
+                  {buttonLabel}
+                  <ArrowRightIcon color="#FFFFFF" />
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* WHY PAY IN CRYPTO — FEATURES */}
+      <section style={{ padding: "32px 0 96px" }}>
+        <div className="mx-auto" style={{ maxWidth: 1280, padding: "0 32px" }}>
+          <span
+            style={{
+              fontFamily: BODY_STACK,
+              fontSize: 11,
+              fontWeight: 600,
+              letterSpacing: "0.18em",
+              textTransform: "uppercase",
+              color: COLOR.trvlBlue,
+              display: "block",
+              marginBottom: 16,
+            }}
+          >
+            Why pay in crypto
+          </span>
+          <h2
+            className="text-[32px] sm:text-[44px] lg:text-[56px]"
+            style={{
+              fontFamily: FONT_STACK,
+              fontWeight: 800,
+              letterSpacing: "-0.03em",
+              lineHeight: 1.05,
+              color: COLOR.navy,
+              marginBottom: 24,
+            }}
+          >
+            Search. Pay. Fly.
+          </h2>
+          <p
+            style={{
+              fontFamily: BODY_STACK,
+              fontSize: 19,
+              color: COLOR.muted,
+              lineHeight: 1.55,
+              maxWidth: 720,
+              marginBottom: 64,
+            }}
+          >
+            Stablecoins from your wallet, e-ticket in your inbox. Less than five minutes, end to end.
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-3" style={{ gap: 16 }}>
+            {[
+              {
+                title: "No bank, no card, no FX games",
+                desc: "Pay straight from your wallet. No card forms, no surprise foreign-exchange fees, no chargeback drama.",
+                icon: (
+                  <LucideIcon size={24} color={COLOR.trvlBlue}>
+                    <rect x="2" y="6" width="20" height="14" rx="2" />
+                    <path d="M2 10h20" />
+                    <path d="M16 14h2" />
+                  </LucideIcon>
+                ),
+              },
+              {
+                title: "Search 500+ airlines worldwide",
+                desc: "One search across the global Duffel network. Cheapest fare every time, with the full route on display.",
+                icon: (
+                  <LucideIcon size={24} color={COLOR.trvlBlue}>
+                    <circle cx="12" cy="12" r="9" />
+                    <path d="M3 12h18" />
+                    <path d="M12 3a14 14 0 0 1 0 18" />
+                    <path d="M12 3a14 14 0 0 0 0 18" />
+                  </LucideIcon>
+                ),
+              },
+              {
+                title: "E-ticket in seconds, not days",
+                desc: "Stablecoins settle in minutes. Your ticket arrives by email before you've put your phone down.",
+                icon: (
+                  <LucideIcon size={24} color={COLOR.trvlBlue}>
+                    <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z" />
+                  </LucideIcon>
+                ),
+              },
+            ].map((f) => (
+              <div
+                key={f.title}
+                style={{
+                  background: COLOR.surface2,
+                  borderRadius: 16,
+                  border: `1px solid ${COLOR.borderSoft}`,
+                  padding: 28,
+                }}
+              >
+                <div
+                  className="flex items-center justify-center"
+                  style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 12,
+                    background: COLOR.trvlBlue50,
+                    marginBottom: 20,
+                  }}
+                >
+                  {f.icon}
+                </div>
+                <h3
+                  style={{
+                    fontFamily: FONT_STACK,
+                    fontWeight: 700,
+                    fontSize: 20,
+                    letterSpacing: "-0.01em",
+                    color: COLOR.navy,
+                    marginBottom: 10,
+                    lineHeight: 1.25,
+                  }}
+                >
+                  {f.title}
+                </h3>
+                <p
+                  style={{
+                    fontFamily: BODY_STACK,
+                    fontSize: 15,
+                    color: COLOR.muted,
+                    lineHeight: 1.6,
+                  }}
+                >
+                  {f.desc}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* POPULAR DESTINATIONS */}
+      <section style={{ padding: "32px 0 96px" }}>
+        <div className="mx-auto" style={{ maxWidth: 1280, padding: "0 32px" }}>
+          <span
+            style={{
+              fontFamily: BODY_STACK,
+              fontSize: 11,
+              fontWeight: 600,
+              letterSpacing: "0.18em",
+              textTransform: "uppercase",
+              color: COLOR.trvlBlue,
+              display: "block",
+              marginBottom: 16,
+            }}
+          >
+            Trending routes
+          </span>
+          <h2
+            className="text-[32px] sm:text-[40px] lg:text-[48px]"
+            style={{
+              fontFamily: FONT_STACK,
+              fontWeight: 800,
+              letterSpacing: "-0.025em",
+              lineHeight: 1.1,
+              color: COLOR.navy,
+              marginBottom: 16,
+            }}
+          >
+            Where the world is flying.
+          </h2>
+          <p
+            style={{
+              fontFamily: BODY_STACK,
+              fontSize: 17,
+              color: COLOR.muted,
+              lineHeight: 1.55,
+              maxWidth: 640,
+              marginBottom: 48,
+            }}
+          >
+            Indicative USDT prices on the eight routes our travellers book most this week.
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4" style={{ gap: 16 }}>
+            {DESTINATIONS.map((d, i) => (
+              <button
+                key={`${d.origin}-${d.destination}-${i}`}
+                type="button"
+                onClick={() => handleDestinationClick(d.origin, d.destination)}
+                className="text-left transition-transform hover:-translate-y-0.5"
+                style={{
+                  background: COLOR.surface2,
+                  borderRadius: 16,
+                  border: `1px solid ${COLOR.borderSoft}`,
+                  overflow: "hidden",
+                  cursor: "pointer",
+                  transitionDuration: "150ms",
+                  transitionTimingFunction: "ease",
+                }}
+              >
+                <div className="relative" style={{ height: 120, background: d.bg }}>
+                  <DestinationArt icon={d.icon} dark={d.dark} />
+                </div>
+                <div style={{ padding: "16px 18px" }}>
+                  <div
+                    style={{
+                      fontFamily: FONT_STACK,
+                      fontSize: 17,
+                      fontWeight: 700,
+                      color: COLOR.navy,
+                      letterSpacing: "-0.01em",
+                    }}
+                  >
+                    {d.city}
                   </div>
                   <div
                     style={{
-                      marginTop: 8,
-                      height: 3,
-                      background: "#EAF3DE",
-                      borderRadius: 999,
-                      overflow: "hidden",
+                      fontFamily: BODY_STACK,
+                      fontSize: 12,
+                      color: COLOR.muted,
+                      marginTop: 2,
+                      letterSpacing: "0.04em",
                     }}
                   >
-                    <div style={{ width: "85%", height: "100%", background: "#639922" }} />
+                    {d.origin} → {d.destination}
                   </div>
-                </div>
-
-                <div style={{ flexShrink: 0, opacity: 0.9 }}>
-                  <svg width="90" height="60" viewBox="0 0 90 60" fill="none">
-                    <path
-                      d="M10 32 L36 28 L50 10 L58 10 L52 30 L72 26 L80 18 L86 20 L78 34 L90 38 L78 44 L70 42 L52 48 L58 58 L50 58 L36 44 L10 44 Z"
-                      fill="rgba(255,255,255,0.3)"
-                      stroke="rgba(255,255,255,0.5)"
-                      strokeWidth="0.5"
-                    />
-                  </svg>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* POPULAR DESTINATIONS */}
-          <section style={{ marginTop: 40 }}>
-            <div style={{ marginBottom: 20 }}>
-              <div
-                style={{
-                  fontSize: 10,
-                  color: "#1E5FFF",
-                  letterSpacing: 1.5,
-                  fontWeight: 500,
-                  marginBottom: 4,
-                  textTransform: "uppercase",
-                }}
-              >
-                Trending Routes
-              </div>
-              <h2 style={{ fontSize: 20, fontWeight: 500, color: "#0B1F3A", letterSpacing: "-0.4px", marginBottom: 2 }}>
-                Popular destinations this week
-              </h2>
-              <p style={{ fontSize: 13, color: "#5F5E5A" }}>
-                Real-time prices in USDT, live from our partners
-              </p>
-            </div>
-            <div
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
-              style={{ gap: 10 }}
-            >
-              {DESTINATIONS.map((d, i) => (
-                <button
-                  key={`${d.origin}-${d.destination}-${i}`}
-                  type="button"
-                  onClick={() => handleDestinationClick(d.origin, d.destination)}
-                  className="text-left transition-transform hover:-translate-y-0.5"
-                  style={{
-                    background: "#FFFFFF",
-                    borderRadius: 12,
-                    border: "0.5px solid rgba(11,31,58,0.08)",
-                    overflow: "hidden",
-                    cursor: "pointer",
-                    transitionDuration: "150ms",
-                    transitionTimingFunction: "ease",
-                  }}
-                >
-                  <div
-                    className="relative"
-                    style={{ height: 100, background: d.bg }}
-                  >
-                    <DestinationArt icon={d.icon} dark={d.dark} />
-                  </div>
-                  <div style={{ padding: "10px 12px" }}>
-                    <div style={{ fontSize: 15, fontWeight: 500, color: "#0B1F3A" }}>{d.city}</div>
-                    <div style={{ fontSize: 11, color: "#888780", marginTop: 1 }}>
-                      {d.origin} → {d.destination}
-                    </div>
-                    <div
-                      className="flex items-baseline"
-                      style={{ gap: 4, marginTop: 6 }}
+                  <div className="flex items-baseline" style={{ gap: 4, marginTop: 10 }}>
+                    <span style={{ fontSize: 11, color: COLOR.muted, fontFamily: BODY_STACK }}>from</span>
+                    <span
+                      style={{
+                        fontFamily: FONT_STACK,
+                        fontSize: 17,
+                        fontWeight: 700,
+                        color: COLOR.trvlBlue,
+                      }}
                     >
-                      <span style={{ fontSize: 10, color: "#888780" }}>from</span>
-                      <span style={{ fontSize: 15, fontWeight: 500, color: "#1E5FFF" }}>{d.price} USDT</span>
-                    </div>
+                      {d.price} USDT
+                    </span>
                   </div>
-                </button>
-              ))}
-            </div>
-          </section>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section style={{ padding: "32px 0 96px" }}>
+        <div className="mx-auto" style={{ maxWidth: 880, padding: "0 32px" }}>
+          <span
+            style={{
+              fontFamily: BODY_STACK,
+              fontSize: 11,
+              fontWeight: 600,
+              letterSpacing: "0.18em",
+              textTransform: "uppercase",
+              color: COLOR.trvlBlue,
+              display: "block",
+              marginBottom: 16,
+            }}
+          >
+            FAQ
+          </span>
+          <h2
+            className="text-[32px] sm:text-[40px] lg:text-[48px]"
+            style={{
+              fontFamily: FONT_STACK,
+              fontWeight: 800,
+              letterSpacing: "-0.025em",
+              lineHeight: 1.1,
+              color: COLOR.navy,
+              marginBottom: 48,
+            }}
+          >
+            Everything you might wonder.
+          </h2>
 
           <div
             style={{
-              marginTop: 48,
-              paddingTop: 24,
-              paddingBottom: 12,
-              borderTop: "0.5px solid rgba(11,31,58,0.08)",
-              fontSize: 12,
-              color: "#888780",
-              textAlign: "center",
+              background: COLOR.surface2,
+              borderRadius: 16,
+              border: `1px solid ${COLOR.borderSoft}`,
+              overflow: "hidden",
             }}
           >
-            © 2026 TRVLscan. Pay in crypto, fly anywhere.
+            {FAQS.map((item, i) => {
+              const open = openFaq === i;
+              return (
+                <div
+                  key={item.q}
+                  style={{ borderBottom: i === FAQS.length - 1 ? "none" : `1px solid ${COLOR.borderSoft}` }}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setOpenFaq(open ? null : i)}
+                    aria-expanded={open}
+                    className="w-full text-left flex items-center justify-between"
+                    style={{
+                      padding: "20px 24px",
+                      background: "transparent",
+                      gap: 16,
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontFamily: FONT_STACK,
+                        fontWeight: 700,
+                        fontSize: 17,
+                        letterSpacing: "-0.01em",
+                        color: COLOR.navy,
+                        lineHeight: 1.35,
+                      }}
+                    >
+                      {item.q}
+                    </span>
+                    <span
+                      className="flex-shrink-0"
+                      style={{
+                        transform: open ? "rotate(180deg)" : "rotate(0deg)",
+                        transition: "transform 200ms ease",
+                        color: COLOR.trvlBlue,
+                      }}
+                    >
+                      <ChevronDownIcon />
+                    </span>
+                  </button>
+                  {open && (
+                    <div
+                      style={{
+                        padding: "0 24px 22px",
+                        fontFamily: BODY_STACK,
+                        fontSize: 15,
+                        color: COLOR.muted,
+                        lineHeight: 1.65,
+                        maxWidth: 720,
+                      }}
+                    >
+                      {item.a}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
-      </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer style={{ background: COLOR.navy, color: "rgba(255, 255, 255, 0.7)", padding: "64px 0" }}>
+        <div
+          className="mx-auto flex flex-wrap items-center justify-between"
+          style={{ maxWidth: 1280, padding: "0 32px", gap: 24 }}
+        >
+          <div className="flex items-center" style={{ gap: 10 }}>
+            <span
+              aria-hidden="true"
+              style={{
+                width: 24,
+                height: 24,
+                borderRadius: "50%",
+                background: `linear-gradient(135deg, ${COLOR.trvlBlue} 0%, ${COLOR.trvlBlueDark} 100%)`,
+                display: "inline-block",
+              }}
+            />
+            <span
+              style={{
+                fontFamily: FONT_STACK,
+                fontWeight: 800,
+                fontSize: 18,
+                letterSpacing: "-0.02em",
+                color: "#FFFFFF",
+              }}
+            >
+              TRVL<span style={{ color: COLOR.trvlBlueLight }}>scan</span>
+            </span>
+          </div>
+          <div
+            style={{
+              fontFamily: "'JetBrains Mono', 'Menlo', monospace",
+              fontSize: 12,
+              textTransform: "uppercase",
+              letterSpacing: "0.1em",
+            }}
+          >
+            © 2026 · Pay in crypto · Fly anywhere
+          </div>
+        </div>
+      </footer>
+
+      {/* PULSE ANIMATION */}
+      <style jsx global>{`
+        @keyframes trvl-pulse {
+          0% { transform: scale(0.8); opacity: 0.6; }
+          70% { transform: scale(1.8); opacity: 0; }
+          100% { transform: scale(1.8); opacity: 0; }
+        }
+        .trvl-pulse {
+          animation: trvl-pulse 1.8s ease-out infinite;
+        }
+      `}</style>
     </main>
   );
 }
