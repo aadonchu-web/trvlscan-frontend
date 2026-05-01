@@ -40,28 +40,9 @@ const COLOR = {
   warningBg: "#FEF3C7",
 };
 
-const NAVY_SHADOW_SM = "0 2px 12px rgba(10, 27, 61, 0.05)";
 const NAVY_SHADOW_LG = "0 12px 40px rgba(10, 27, 61, 0.08)";
 const NAVY_SHADOW_CARD = "0 4px 24px rgba(10, 27, 61, 0.06)";
 const TRVL_POP_SHADOW = "0 1px 0 rgba(27,79,255,0.10), 0 18px 32px -16px rgba(27,79,255,0.45)";
-
-const FIELD_LABEL_STYLE: React.CSSProperties = {
-  fontSize: 11,
-  color: COLOR.muted,
-  fontWeight: 600,
-  letterSpacing: "0.1em",
-  textTransform: "uppercase",
-  marginBottom: 6,
-  fontFamily: BODY_STACK,
-};
-
-const FIELD_CHIP_STYLE: React.CSSProperties = {
-  padding: "12px 14px",
-  background: COLOR.surface,
-  borderRadius: 12,
-  minHeight: 52,
-  border: `1px solid ${COLOR.border}`,
-};
 
 const SKY_LABEL_STYLE: React.CSSProperties = {
   fontSize: 11,
@@ -150,13 +131,6 @@ function formatLongDate(iso: string): string {
   return d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
 }
 
-function formatShortDate(iso: string): string {
-  if (!iso) return "";
-  const d = new Date(`${iso}T00:00:00`);
-  if (Number.isNaN(d.getTime())) return "";
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-}
-
 function nightsBetween(a: string, b: string): number {
   if (!a || !b) return 0;
   const d1 = new Date(`${a}T00:00:00`);
@@ -192,36 +166,11 @@ function LucideIcon({
   );
 }
 
-function PlaneIcon({ color = COLOR.trvlBlue, size = 18 }: { color?: string; size?: number }) {
-  return (
-    <LucideIcon size={size} color={color}>
-      <path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z" />
-    </LucideIcon>
-  );
-}
-
-function PinIcon({ color = COLOR.trvlBlue, size = 18 }: { color?: string; size?: number }) {
-  return (
-    <LucideIcon size={size} color={color}>
-      <path d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0z" />
-      <circle cx="12" cy="10.5" r="3" />
-    </LucideIcon>
-  );
-}
-
 function ArrowRightIcon({ color = "currentColor", size = 16 }: { color?: string; size?: number }) {
   return (
     <LucideIcon size={size} color={color}>
       <path d="M5 12h14" />
       <path d="m12 5 7 7-7 7" />
-    </LucideIcon>
-  );
-}
-
-function ChevronDownIcon({ color = COLOR.trvlBlue, size = 18 }: { color?: string; size?: number }) {
-  return (
-    <LucideIcon size={size} color={color}>
-      <path d="m6 9 6 6 6-6" />
     </LucideIcon>
   );
 }
