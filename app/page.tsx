@@ -1469,7 +1469,7 @@ export default function HomePage() {
               }}
             >
               <div className="flex flex-wrap md:flex-nowrap" style={{ alignItems: "stretch" }}>
-                <div className="flex flex-1 min-w-0 relative w-full md:w-auto" style={{ alignItems: "stretch" }}>
+                <div className="flex min-w-0 relative w-full md:w-[601px]" style={{ alignItems: "stretch" }}>
                   {renderAirportField(
                     "From",
                     originQuery,
@@ -1531,15 +1531,15 @@ export default function HomePage() {
                   </button>
                 </div>
                 <VDiv desktopOnly />
-                <div className="w-full md:w-[150px]">
+                <div className="w-full md:w-[210px]">
                   {renderDateChip("Depart", date, setDate)}
                 </div>
                 <VDiv desktopOnly />
-                <div className="w-full md:w-[150px]">
+                <div className="w-full md:w-[210px]">
                   {renderDateChip("Return", returnDate, setReturnDate)}
                 </div>
                 <VDiv desktopOnly />
-                <div className="w-full md:w-[160px]">
+                <div className="w-full md:w-[170px]">
                   {renderPassengersChip()}
                 </div>
                 <SearchSubmit />
