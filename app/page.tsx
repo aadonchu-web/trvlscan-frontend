@@ -17,6 +17,12 @@ const FONT_STACK = "'Plus Jakarta Sans', 'Inter', system-ui, sans-serif";
 const BODY_STACK = "'Inter', system-ui, sans-serif";
 const MONO_STACK = "'JetBrains Mono', ui-monospace, 'Menlo', monospace";
 
+// Fluid scaling helpers — driven by --s (fonts/paddings/gaps) and --s-rhythm (section vertical py, capped at 1.3×).
+// CSS vars defined in the <style jsx global> block at the bottom of this file.
+const s = (px: number) => `calc(${px}px * var(--s))`;
+const sp = (...vals: number[]) => vals.map((v) => `calc(${v}px * var(--s))`).join(" ");
+const sr = (px: number) => `calc(${px}px * var(--s-rhythm))`;
+
 const COLOR = {
   trvlBlue: "#1B4FFF",
   trvlBlueDark: "#0033C1",
@@ -45,7 +51,7 @@ const NAVY_SHADOW_CARD = "0 4px 24px rgba(10, 27, 61, 0.06)";
 const TRVL_POP_SHADOW = "0 1px 0 rgba(27,79,255,0.10), 0 18px 32px -16px rgba(27,79,255,0.45)";
 
 const SKY_LABEL_STYLE: React.CSSProperties = {
-  fontSize: 11,
+  fontSize: s(11),
   color: COLOR.mutedSoft,
   fontFamily: MONO_STACK,
   fontWeight: 500,
@@ -54,7 +60,7 @@ const SKY_LABEL_STYLE: React.CSSProperties = {
 };
 
 const SKY_CAPTION_STYLE: React.CSSProperties = {
-  fontSize: 12,
+  fontSize: s(12),
   color: COLOR.muted,
   fontFamily: BODY_STACK,
 };
@@ -66,8 +72,8 @@ const PILL_STYLE: React.CSSProperties = {
   background: COLOR.surface2,
   border: `1px solid ${COLOR.surfaceLine}`,
   borderRadius: 999,
-  padding: "6px 12px",
-  fontSize: 13,
+  padding: sp(6, 12),
+  fontSize: s(13),
   color: COLOR.navy,
   fontFamily: BODY_STACK,
   cursor: "pointer",
@@ -558,14 +564,14 @@ export default function HomePage() {
     onPick: (s: AirportSuggestion) => void,
     placeholder: string,
   ) => (
-    <div className="flex-1 min-w-0 relative" style={{ padding: "14px 20px" }}>
+    <div className="flex-1 min-w-0 relative" style={{ padding: sp(14, 20) }}>
       <div style={SKY_LABEL_STYLE}>{label}</div>
       <input
         type="text"
         value={query}
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full bg-transparent border-0 outline-none p-0 mt-1 text-[19px] font-semibold truncate"
+        className="w-full bg-transparent border-0 outline-none p-0 mt-1 text-[19px] 2xl:text-[22px] min-[1920px]:text-[25px] min-[2560px]:text-[30px] font-semibold truncate"
         style={{ fontFamily: FONT_STACK, color: COLOR.navy }}
       />
       <div style={{ ...SKY_CAPTION_STYLE, marginTop: 1, minHeight: 18 }} className="truncate">
@@ -585,7 +591,7 @@ export default function HomePage() {
               key={`${suggestion.iata_code}-${suggestion.name}`}
               type="button"
               onClick={() => onPick(suggestion)}
-              className="w-full text-left px-3 py-2.5 text-[13px] hover:bg-[#F7F7F8]"
+              className="w-full text-left px-3 py-2.5 text-[13px] 2xl:text-[15px] min-[1920px]:text-[17px] min-[2560px]:text-[21px] hover:bg-[#F7F7F8]"
               style={{ color: COLOR.navy }}
             >
               <span className="font-semibold">{suggestion.iata_code}</span>
@@ -598,10 +604,10 @@ export default function HomePage() {
   );
 
   const renderDateChip = (label: string, value: string, onChange: (v: string) => void, caption?: string) => (
-    <div className="relative" style={{ padding: "14px 20px", minWidth: 0 }}>
+    <div className="relative" style={{ padding: sp(14, 20), minWidth: 0 }}>
       <div style={SKY_LABEL_STYLE}>{label}</div>
       <div
-        className="text-[19px] font-semibold pointer-events-none mt-1 truncate"
+        className="text-[19px] 2xl:text-[22px] min-[1920px]:text-[25px] min-[2560px]:text-[30px] font-semibold pointer-events-none mt-1 truncate"
         style={{ color: value ? COLOR.navy : COLOR.mutedSoft, fontFamily: FONT_STACK }}
       >
         {value ? formatLongDate(value) : "Select date"}
@@ -624,11 +630,11 @@ export default function HomePage() {
         type="button"
         onClick={() => setShowPaxDropdown((v) => !v)}
         className="w-full text-left"
-        style={{ padding: "14px 20px" }}
+        style={{ padding: sp(14, 20) }}
       >
         <div style={SKY_LABEL_STYLE}>TRAVELERS</div>
         <div
-          className="text-[19px] font-semibold mt-1 truncate"
+          className="text-[19px] 2xl:text-[22px] min-[1920px]:text-[25px] min-[2560px]:text-[30px] font-semibold mt-1 truncate"
           style={{ color: COLOR.navy, fontFamily: FONT_STACK }}
         >
           {totalPassengers} {totalPassengers === 1 ? "Adult" : "Travellers"}
@@ -731,9 +737,9 @@ export default function HomePage() {
         color: "#FFFFFF",
         fontFamily: BODY_STACK,
         fontWeight: 600,
-        fontSize: 15,
-        padding: "0 28px",
-        minHeight: wide ? 64 : "100%",
+        fontSize: s(15),
+        padding: `0 ${s(28)}`,
+        minHeight: wide ? s(64) : "100%",
         minWidth: 140,
         cursor: "pointer",
         borderTopRightRadius: 16,
@@ -841,9 +847,9 @@ export default function HomePage() {
         />
         <div
           className="relative mx-auto w-full xl:max-w-screen-xl 2xl:max-w-[1440px] min-[1920px]:max-w-[1680px] min-[2560px]:max-w-[2200px]"
-          style={{ padding: "40px 32px 32px" }}
+          style={{ padding: `${s(40)} 32px ${s(32)}` }}
         >
-          <div className="grid grid-cols-1 lg:grid-cols-12" style={{ gap: 48, alignItems: "start" }}>
+          <div className="grid grid-cols-1 lg:grid-cols-12" style={{ gap: s(48), alignItems: "start" }}>
             {/* LEFT: copy column */}
             <div className="lg:col-span-7">
               <div
@@ -854,10 +860,10 @@ export default function HomePage() {
                   border: `1px solid ${COLOR.surfaceLine}`,
                   boxShadow: NAVY_SHADOW_CARD,
                   borderRadius: 999,
-                  padding: "4px 12px 4px 6px",
-                  fontSize: 12,
+                  padding: `${s(4)} ${s(12)} ${s(4)} ${s(6)}`,
+                  fontSize: s(12),
                   color: COLOR.navyTint,
-                  marginBottom: 20,
+                  marginBottom: s(20),
                 }}
               >
                 <span
@@ -866,8 +872,8 @@ export default function HomePage() {
                     color: COLOR.usdtGreenDark,
                     fontFamily: MONO_STACK,
                     fontWeight: 500,
-                    fontSize: 11,
-                    padding: "2px 8px",
+                    fontSize: s(11),
+                    padding: sp(2, 8),
                     borderRadius: 999,
                   }}
                 >
@@ -877,7 +883,7 @@ export default function HomePage() {
               </div>
 
               <h1
-                className="text-[80px] sm:text-[88px] lg:text-[96px]"
+                className="text-[80px] sm:text-[88px] lg:text-[96px] 2xl:text-[110px] min-[1920px]:text-[125px] min-[2560px]:text-[154px]"
                 style={{
                   fontFamily: FONT_STACK,
                   fontWeight: 800,
@@ -906,10 +912,10 @@ export default function HomePage() {
               <p
                 style={{
                   fontFamily: BODY_STACK,
-                  fontSize: 16,
+                  fontSize: s(16),
                   lineHeight: 1.5,
                   color: COLOR.navyTint,
-                  marginTop: 20,
+                  marginTop: s(20),
                   maxWidth: 540,
                 }}
               >
@@ -917,7 +923,7 @@ export default function HomePage() {
                 &ldquo;premium upgrade.&rdquo; Just the fare you saw, plus a small fee, in USDT or USDC.
               </p>
 
-              <div className="flex flex-wrap items-center" style={{ gap: 16, marginTop: 24 }}>
+              <div className="flex flex-wrap items-center" style={{ gap: s(16), marginTop: s(24) }}>
                 <a
                   href="#search"
                   className="inline-flex items-center justify-center"
@@ -927,9 +933,9 @@ export default function HomePage() {
                     color: "#FFFFFF",
                     fontFamily: BODY_STACK,
                     fontWeight: 500,
-                    fontSize: 15,
-                    height: 48,
-                    padding: "0 24px",
+                    fontSize: s(15),
+                    height: s(48),
+                    padding: `0 ${s(24)}`,
                     borderRadius: 12,
                     boxShadow: TRVL_POP_SHADOW,
                   }}
@@ -945,9 +951,9 @@ export default function HomePage() {
                     color: COLOR.navy,
                     fontFamily: BODY_STACK,
                     fontWeight: 500,
-                    fontSize: 15,
-                    height: 48,
-                    padding: "0 8px",
+                    fontSize: s(15),
+                    height: s(48),
+                    padding: `0 ${s(8)}`,
                   }}
                 >
                   How payment works
@@ -960,28 +966,28 @@ export default function HomePage() {
               {/* Three stat-blocks */}
               <div
                 className="grid grid-cols-3"
-                style={{ gap: 24, marginTop: 32, maxWidth: 540, fontSize: 13 }}
+                style={{ gap: s(24), marginTop: s(32), maxWidth: 540, fontSize: s(13) }}
               >
                 {[
                   { num: "2.5%", caption: "Flat fee. No FX surprise." },
                   { num: "12 min", caption: "Hold window per booking." },
                   { num: "450+", caption: "Airlines via IATA settlement." },
-                ].map((s) => (
-                  <div key={s.num}>
+                ].map((stat) => (
+                  <div key={stat.num}>
                     <div
                       style={{
                         fontFamily: MONO_STACK,
-                        fontSize: 20,
+                        fontSize: s(20),
                         fontWeight: 600,
                         letterSpacing: "-0.01em",
                         color: COLOR.navy,
                         fontVariantNumeric: "tabular-nums",
                       }}
                     >
-                      {s.num}
+                      {stat.num}
                     </div>
                     <div style={{ color: COLOR.navyTint, marginTop: 2, fontFamily: BODY_STACK }}>
-                      {s.caption}
+                      {stat.caption}
                     </div>
                   </div>
                 ))}
@@ -998,11 +1004,11 @@ export default function HomePage() {
                     left: 24,
                     zIndex: 10,
                     fontFamily: MONO_STACK,
-                    fontSize: 10,
+                    fontSize: s(10),
                     letterSpacing: "0.16em",
                     color: COLOR.navyTint,
                     background: COLOR.surface,
-                    padding: "2px 8px",
+                    padding: sp(2, 8),
                     borderRadius: 4,
                   }}
                 >
@@ -1014,10 +1020,10 @@ export default function HomePage() {
                     background: COLOR.surface2,
                     borderRadius: 20,
                     boxShadow: NAVY_SHADOW_LG,
-                    padding: 20,
+                    padding: s(20),
                   }}
                 >
-                  <div className="flex items-center justify-between" style={{ fontSize: 12 }}>
+                  <div className="flex items-center justify-between" style={{ fontSize: s(12) }}>
                     <div className="flex items-center" style={{ gap: 8 }}>
                       <span
                         aria-hidden="true"
@@ -1050,13 +1056,13 @@ export default function HomePage() {
                     <span style={{ fontFamily: MONO_STACK, color: COLOR.navyTint }}>14 May · Wed</span>
                   </div>
 
-                  <div className="flex items-center" style={{ gap: 12, marginTop: 20 }}>
+                  <div className="flex items-center" style={{ gap: s(12), marginTop: s(20) }}>
                     <div style={{ textAlign: "left" }}>
                       <div
                         style={{
                           fontFamily: FONT_STACK,
                           fontWeight: 700,
-                          fontSize: 40,
+                          fontSize: s(40),
                           lineHeight: 1,
                           letterSpacing: "-0.02em",
                           color: COLOR.navy,
@@ -1064,14 +1070,14 @@ export default function HomePage() {
                       >
                         LHR
                       </div>
-                      <div style={{ fontFamily: MONO_STACK, fontSize: 11, color: COLOR.navyTint, marginTop: 8 }}>
+                      <div style={{ fontFamily: MONO_STACK, fontSize: s(11), color: COLOR.navyTint, marginTop: s(8) }}>
                         London Heathrow
                       </div>
                       <div
                         style={{
                           fontFamily: MONO_STACK,
-                          fontSize: 13,
-                          marginTop: 4,
+                          fontSize: s(13),
+                          marginTop: s(4),
                           fontVariantNumeric: "tabular-nums",
                           color: COLOR.navy,
                         }}
@@ -1080,7 +1086,7 @@ export default function HomePage() {
                       </div>
                     </div>
 
-                    <div className="flex-1" style={{ padding: "0 12px" }}>
+                    <div className="flex-1" style={{ padding: `0 ${s(12)}` }}>
                       <div className="flex items-center">
                         <div
                           style={{
@@ -1123,10 +1129,10 @@ export default function HomePage() {
                         className="text-center"
                         style={{
                           fontFamily: MONO_STACK,
-                          fontSize: 10,
+                          fontSize: s(10),
                           letterSpacing: "0.1em",
                           color: COLOR.navyTint,
-                          marginTop: 8,
+                          marginTop: s(8),
                         }}
                       >
                         11H 30M · NONSTOP
@@ -1138,7 +1144,7 @@ export default function HomePage() {
                         style={{
                           fontFamily: FONT_STACK,
                           fontWeight: 700,
-                          fontSize: 40,
+                          fontSize: s(40),
                           lineHeight: 1,
                           letterSpacing: "-0.02em",
                           color: COLOR.navy,
@@ -1146,32 +1152,32 @@ export default function HomePage() {
                       >
                         BKK
                       </div>
-                      <div style={{ fontFamily: MONO_STACK, fontSize: 11, color: COLOR.navyTint, marginTop: 8 }}>
+                      <div style={{ fontFamily: MONO_STACK, fontSize: s(11), color: COLOR.navyTint, marginTop: s(8) }}>
                         Bangkok Suvarnabhumi
                       </div>
                       <div
                         style={{
                           fontFamily: MONO_STACK,
-                          fontSize: 13,
-                          marginTop: 4,
+                          fontSize: s(13),
+                          marginTop: s(4),
                           fontVariantNumeric: "tabular-nums",
                           color: COLOR.navy,
                         }}
                       >
-                        16:45<span style={{ color: COLOR.navyTint, fontSize: 10 }}> +1</span>
+                        16:45<span style={{ color: COLOR.navyTint, fontSize: s(10) }}> +1</span>
                       </div>
                     </div>
                   </div>
 
-                  <div style={{ height: 1, background: COLOR.surfaceLine, margin: "16px 0" }} />
+                  <div style={{ height: 1, background: COLOR.surfaceLine, margin: `${s(16)} 0` }} />
 
-                  <div style={{ fontSize: 13 }}>
+                  <div style={{ fontSize: s(13) }}>
                     {[
                       { label: "Fare (Economy · 1 adult)", value: "£371.20" },
                       { label: "Conversion (GBP → USDT)", value: "×1.2742" },
                       { label: "TRVLscan fee", value: "2.5%" },
                     ].map((row) => (
-                      <div key={row.label} className="flex justify-between" style={{ padding: "4px 0" }}>
+                      <div key={row.label} className="flex justify-between" style={{ padding: `${s(4)} 0` }}>
                         <span style={{ color: COLOR.navyTint, fontFamily: BODY_STACK }}>{row.label}</span>
                         <span style={{ fontFamily: MONO_STACK, fontVariantNumeric: "tabular-nums", color: COLOR.navy }}>
                           {row.value}
@@ -1180,12 +1186,12 @@ export default function HomePage() {
                     ))}
                   </div>
 
-                  <div className="flex items-end justify-between" style={{ marginTop: 16 }}>
+                  <div className="flex items-end justify-between" style={{ marginTop: s(16) }}>
                     <div>
                       <div
                         style={{
                           fontFamily: MONO_STACK,
-                          fontSize: 11,
+                          fontSize: s(11),
                           letterSpacing: "0.1em",
                           color: COLOR.navyTint,
                         }}
@@ -1196,10 +1202,10 @@ export default function HomePage() {
                         style={{
                           fontFamily: FONT_STACK,
                           fontWeight: 800,
-                          fontSize: 36,
+                          fontSize: s(36),
                           lineHeight: 1,
                           letterSpacing: "-0.02em",
-                          marginTop: 4,
+                          marginTop: s(4),
                           color: COLOR.navy,
                           fontVariantNumeric: "tabular-nums",
                         }}
@@ -1208,7 +1214,7 @@ export default function HomePage() {
                         <span
                           style={{
                             fontFamily: MONO_STACK,
-                            fontSize: 16,
+                            fontSize: s(16),
                             fontWeight: 500,
                             color: COLOR.navyTint,
                             verticalAlign: "baseline",
@@ -1224,10 +1230,10 @@ export default function HomePage() {
                         gap: 8,
                         background: COLOR.navy,
                         color: "#FFFFFF",
-                        fontSize: 13,
+                        fontSize: s(13),
                         fontWeight: 500,
-                        height: 40,
-                        padding: "0 20px",
+                        height: s(40),
+                        padding: `0 ${s(20)}`,
                         borderRadius: 10,
                         fontFamily: BODY_STACK,
                       }}
@@ -1240,10 +1246,10 @@ export default function HomePage() {
                   <div
                     className="flex items-center justify-between"
                     style={{
-                      marginTop: 16,
-                      paddingTop: 16,
+                      marginTop: s(16),
+                      paddingTop: s(16),
                       borderTop: `1px solid ${COLOR.surfaceLine}`,
-                      fontSize: 11,
+                      fontSize: s(11),
                       fontFamily: MONO_STACK,
                       color: COLOR.navyTint,
                       letterSpacing: "0.04em",
@@ -1265,7 +1271,7 @@ export default function HomePage() {
       <section id="search" className="relative">
         <div className="mx-auto w-full xl:max-w-screen-xl 2xl:max-w-[1440px] min-[1920px]:max-w-[1680px] min-[2560px]:max-w-[2200px]" style={{ padding: "0 32px" }}>
           {/* Trip-type + cabin-class pills (always visible) */}
-          <div className="flex items-center" style={{ gap: 12, marginBottom: 12 }}>
+          <div className="flex items-center" style={{ gap: s(12), marginBottom: s(12) }}>
             <div className="relative" ref={tripDropdownRef}>
               <button
                 type="button"
@@ -1301,9 +1307,9 @@ export default function HomePage() {
                       }}
                       className="w-full text-left"
                       style={{
-                        padding: "8px 12px",
+                        padding: sp(8, 12),
                         borderRadius: 8,
-                        fontSize: 13,
+                        fontSize: s(13),
                         color: COLOR.navy,
                         fontWeight: tripType === t.key ? 600 : 500,
                         background: tripType === t.key ? COLOR.surface : "transparent",
@@ -1356,9 +1362,9 @@ export default function HomePage() {
                       }}
                       className="w-full text-left"
                       style={{
-                        padding: "8px 12px",
+                        padding: sp(8, 12),
                         borderRadius: 8,
-                        fontSize: 13,
+                        fontSize: s(13),
                         color: COLOR.navy,
                         fontWeight: cabinClass === cls.value ? 600 : 500,
                         background: cabinClass === cls.value ? COLOR.surface : "transparent",
@@ -1548,8 +1554,8 @@ export default function HomePage() {
                 <div
                   style={{
                     background: COLOR.trvlBlue50,
-                    padding: "8px 20px",
-                    fontSize: 12,
+                    padding: sp(8, 20),
+                    fontSize: s(12),
                     color: COLOR.trvlBlueDark,
                     borderTop: `1px solid ${COLOR.surfaceLine}`,
                     fontFamily: BODY_STACK,
@@ -1580,7 +1586,7 @@ export default function HomePage() {
                       style={{ alignItems: "stretch" }}
                     >
                       {/* From — leg N */}
-                      <div className="flex-1 min-w-0 relative" style={{ padding: "14px 20px" }}>
+                      <div className="flex-1 min-w-0 relative" style={{ padding: sp(14, 20) }}>
                         <div style={SKY_LABEL_STYLE}>{`From · Leg ${idx + 1}`}</div>
                         <input
                           type="text"
@@ -1597,7 +1603,7 @@ export default function HomePage() {
                               );
                             });
                           }}
-                          className="w-full bg-transparent border-0 outline-none p-0 mt-1 text-[19px] font-semibold uppercase truncate"
+                          className="w-full bg-transparent border-0 outline-none p-0 mt-1 text-[19px] 2xl:text-[22px] min-[1920px]:text-[25px] min-[2560px]:text-[30px] font-semibold uppercase truncate"
                           style={{ fontFamily: FONT_STACK, color: COLOR.navy }}
                         />
                         <div style={{ ...SKY_CAPTION_STYLE, minHeight: 18 }} className="truncate">
@@ -1628,7 +1634,7 @@ export default function HomePage() {
                                     prev.map((arr, i) => (i === idx ? [] : arr)),
                                   );
                                 }}
-                                className="w-full text-left px-3 py-2.5 text-[13px] hover:bg-[#F7F7F8]"
+                                className="w-full text-left px-3 py-2.5 text-[13px] 2xl:text-[15px] min-[1920px]:text-[17px] min-[2560px]:text-[21px] hover:bg-[#F7F7F8]"
                                 style={{ color: COLOR.navy }}
                               >
                                 <span className="font-semibold">{s.iata_code}</span>
@@ -1640,7 +1646,7 @@ export default function HomePage() {
                       </div>
                       <VDiv />
                       {/* To — leg N */}
-                      <div className="flex-1 min-w-0 relative" style={{ padding: "14px 20px" }}>
+                      <div className="flex-1 min-w-0 relative" style={{ padding: sp(14, 20) }}>
                         <div style={SKY_LABEL_STYLE}>{`To · Leg ${idx + 1}`}</div>
                         <input
                           type="text"
@@ -1659,7 +1665,7 @@ export default function HomePage() {
                               );
                             });
                           }}
-                          className="w-full bg-transparent border-0 outline-none p-0 mt-1 text-[19px] font-semibold uppercase truncate"
+                          className="w-full bg-transparent border-0 outline-none p-0 mt-1 text-[19px] 2xl:text-[22px] min-[1920px]:text-[25px] min-[2560px]:text-[30px] font-semibold uppercase truncate"
                           style={{ fontFamily: FONT_STACK, color: COLOR.navy }}
                         />
                         <div style={{ ...SKY_CAPTION_STYLE, minHeight: 18 }} className="truncate">
@@ -1690,7 +1696,7 @@ export default function HomePage() {
                                     prev.map((arr, i) => (i === idx ? [] : arr)),
                                   );
                                 }}
-                                className="w-full text-left px-3 py-2.5 text-[13px] hover:bg-[#F7F7F8]"
+                                className="w-full text-left px-3 py-2.5 text-[13px] 2xl:text-[15px] min-[1920px]:text-[17px] min-[2560px]:text-[21px] hover:bg-[#F7F7F8]"
                                 style={{ color: COLOR.navy }}
                               >
                                 <span className="font-semibold">{s.iata_code}</span>
@@ -1740,11 +1746,11 @@ export default function HomePage() {
                       </button>
                     </div>
                     <VDiv desktopOnly />
-                    <div className="relative w-full md:w-[280px]" style={{ padding: "14px 20px" }}>
+                    <div className="relative w-full md:w-[280px]" style={{ padding: sp(14, 20) }}>
                       <div className="w-full">
                         <div style={SKY_LABEL_STYLE}>Depart</div>
                         <div
-                          className="text-[19px] font-semibold pointer-events-none mt-1 truncate"
+                          className="text-[19px] 2xl:text-[22px] min-[1920px]:text-[25px] min-[2560px]:text-[30px] font-semibold pointer-events-none mt-1 truncate"
                           style={{ color: leg.date ? COLOR.navy : COLOR.mutedSoft, fontFamily: FONT_STACK }}
                         >
                           {leg.date ? formatLongDate(leg.date) : "Select date"}
@@ -1797,7 +1803,7 @@ export default function HomePage() {
               ))}
 
               <HDiv />
-              <div style={{ padding: "12px 20px" }}>
+              <div style={{ padding: sp(12, 20) }}>
                 <button
                   type="button"
                   disabled={multiCityLegs.length >= 5}
@@ -1817,7 +1823,7 @@ export default function HomePage() {
                     color: COLOR.trvlBlue,
                     fontFamily: BODY_STACK,
                     fontWeight: 500,
-                    fontSize: 14,
+                    fontSize: s(14),
                     opacity: multiCityLegs.length >= 5 ? 0.5 : 1,
                     cursor: multiCityLegs.length >= 5 ? "not-allowed" : "pointer",
                     background: "transparent",
@@ -1846,9 +1852,9 @@ export default function HomePage() {
           <div
             className="flex flex-wrap items-center"
             style={{
-              gap: "8px 24px",
-              marginTop: 24,
-              fontSize: 13,
+              gap: `${s(8)} ${s(24)}`,
+              marginTop: s(24),
+              fontSize: s(13),
               color: COLOR.muted,
               fontFamily: BODY_STACK,
             }}
@@ -1868,7 +1874,7 @@ export default function HomePage() {
                 gap: 8,
                 marginLeft: "auto",
                 fontFamily: MONO_STACK,
-                fontSize: 12,
+                fontSize: s(12),
                 color: COLOR.mutedSoft,
               }}
             >
@@ -1879,13 +1885,13 @@ export default function HomePage() {
       </section>
 
       {/* ─────────── FEATURES ─────────── */}
-      <section id="how" style={{ padding: "96px 0 32px" }}>
+      <section id="how" style={{ padding: `${sr(96)} 0 ${sr(32)}` }}>
         <div className="mx-auto w-full xl:max-w-screen-xl 2xl:max-w-[1440px] min-[1920px]:max-w-[1680px] min-[2560px]:max-w-[2200px]" style={{ padding: "0 32px" }}>
-          <div className="flex items-end justify-between flex-wrap" style={{ gap: 24 }}>
+          <div className="flex items-end justify-between flex-wrap" style={{ gap: s(24) }}>
             <div style={{ maxWidth: 640 }}>
               <div
                 style={{
-                  fontSize: 12,
+                  fontSize: s(12),
                   textTransform: "uppercase",
                   letterSpacing: "0.18em",
                   color: COLOR.trvlBlue,
@@ -1896,14 +1902,14 @@ export default function HomePage() {
                 Why TRVLscan
               </div>
               <h2
-                className="text-[40px] sm:text-[52px]"
+                className="text-[40px] sm:text-[52px] 2xl:text-[60px] min-[1920px]:text-[68px] min-[2560px]:text-[83px]"
                 style={{
                   fontFamily: FONT_STACK,
                   fontWeight: 800,
                   letterSpacing: "-0.025em",
                   lineHeight: 1.0,
                   color: COLOR.navy,
-                  marginTop: 12,
+                  marginTop: s(12),
                 }}
               >
                 The fastest way to fly when your money is on-chain.
@@ -1912,7 +1918,7 @@ export default function HomePage() {
             <p
               style={{
                 maxWidth: 380,
-                fontSize: 15.5,
+                fontSize: s(15.5),
                 color: COLOR.muted,
                 lineHeight: 1.6,
                 fontFamily: BODY_STACK,
@@ -1924,7 +1930,7 @@ export default function HomePage() {
 
           <div
             className="grid grid-cols-1 md:grid-cols-3"
-            style={{ gap: 20, marginTop: 48 }}
+            style={{ gap: s(20), marginTop: s(48) }}
           >
             {/* Card 1 — white */}
             <article
@@ -1933,7 +1939,7 @@ export default function HomePage() {
                 background: COLOR.surface2,
                 borderRadius: 24,
                 border: `1px solid ${COLOR.surfaceLine}`,
-                padding: 28,
+                padding: s(28),
               }}
             >
               <div
@@ -1954,10 +1960,10 @@ export default function HomePage() {
                 style={{
                   fontFamily: FONT_STACK,
                   fontWeight: 700,
-                  fontSize: 22,
+                  fontSize: s(22),
                   letterSpacing: "-0.01em",
                   color: COLOR.navy,
-                  marginTop: 20,
+                  marginTop: s(20),
                 }}
               >
                 One search, every airline.
@@ -1965,10 +1971,10 @@ export default function HomePage() {
               <p
                 style={{
                   fontFamily: BODY_STACK,
-                  fontSize: 14.5,
+                  fontSize: s(14.5),
                   color: COLOR.muted,
                   lineHeight: 1.6,
-                  marginTop: 10,
+                  marginTop: s(10),
                 }}
               >
                 We check 38 carriers and major aggregators in parallel. You see the real cheapest fare — not the one a partner paid to surface.
@@ -1978,8 +1984,8 @@ export default function HomePage() {
                 className="inline-flex items-center"
                 style={{
                   gap: 6,
-                  marginTop: 20,
-                  fontSize: 13,
+                  marginTop: s(20),
+                  fontSize: s(13),
                   fontWeight: 500,
                   color: COLOR.trvlBlue,
                   fontFamily: BODY_STACK,
@@ -1997,7 +2003,7 @@ export default function HomePage() {
                 background: COLOR.navy,
                 color: "#FFFFFF",
                 borderRadius: 24,
-                padding: 28,
+                padding: s(28),
                 overflow: "hidden",
               }}
             >
@@ -2048,10 +2054,10 @@ export default function HomePage() {
                 style={{
                   fontFamily: FONT_STACK,
                   fontWeight: 700,
-                  fontSize: 22,
+                  fontSize: s(22),
                   letterSpacing: "-0.01em",
                   color: "#FFFFFF",
-                  marginTop: 20,
+                  marginTop: s(20),
                 }}
               >
                 Pay with the wallet you already use.
@@ -2059,10 +2065,10 @@ export default function HomePage() {
               <p
                 style={{
                   fontFamily: BODY_STACK,
-                  fontSize: 14.5,
+                  fontSize: s(14.5),
                   color: "rgba(255, 255, 255, 0.75)",
                   lineHeight: 1.6,
-                  marginTop: 10,
+                  marginTop: s(10),
                 }}
               >
                 USDT on Tron, USDC on Solana, USDT on Ethereum — same QR flow. No card, no 3-D Secure, no &ldquo;your bank declined this airline&rdquo; at 11&nbsp;PM.
@@ -2070,12 +2076,12 @@ export default function HomePage() {
               <div
                 className="relative flex items-center"
                 style={{
-                  marginTop: 24,
-                  gap: 12,
+                  marginTop: s(24),
+                  gap: s(12),
                   background: "rgba(255, 255, 255, 0.1)",
                   border: "1px solid rgba(255, 255, 255, 0.12)",
                   borderRadius: 16,
-                  padding: 12,
+                  padding: s(12),
                 }}
               >
                 <div
@@ -2096,25 +2102,25 @@ export default function HomePage() {
                   ₮
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div style={{ fontSize: 12, color: "rgba(255, 255, 255, 0.7)", fontFamily: BODY_STACK }}>
+                  <div style={{ fontSize: s(12), color: "rgba(255, 255, 255, 0.7)", fontFamily: BODY_STACK }}>
                     Send to TRC-20 address
                   </div>
                   <div
                     className="truncate"
-                    style={{ fontFamily: MONO_STACK, fontSize: 13, color: "#FFFFFF" }}
+                    style={{ fontFamily: MONO_STACK, fontSize: s(13), color: "#FFFFFF" }}
                   >
                     TQrZ8…dN9f4kE
                   </div>
                 </div>
                 <span
                   style={{
-                    fontSize: 11,
+                    fontSize: s(11),
                     textTransform: "uppercase",
                     letterSpacing: "0.14em",
                     fontFamily: MONO_STACK,
                     color: COLOR.usdtGreenLight,
                     background: "rgba(15, 169, 88, 0.3)",
-                    padding: "2px 8px",
+                    padding: sp(2, 8),
                     borderRadius: 999,
                   }}
                 >
@@ -2130,7 +2136,7 @@ export default function HomePage() {
                 background: COLOR.trvlBlue50,
                 borderRadius: 24,
                 border: `1px solid ${COLOR.surfaceLine}`,
-                padding: 28,
+                padding: s(28),
               }}
             >
               <div
@@ -2155,10 +2161,10 @@ export default function HomePage() {
                 style={{
                   fontFamily: FONT_STACK,
                   fontWeight: 700,
-                  fontSize: 22,
+                  fontSize: s(22),
                   letterSpacing: "-0.01em",
                   color: COLOR.navy,
-                  marginTop: 20,
+                  marginTop: s(20),
                 }}
               >
                 Real ticket, real airline, real PNR.
@@ -2166,15 +2172,15 @@ export default function HomePage() {
               <p
                 style={{
                   fontFamily: BODY_STACK,
-                  fontSize: 14.5,
+                  fontSize: s(14.5),
                   color: COLOR.muted,
                   lineHeight: 1.6,
-                  marginTop: 10,
+                  marginTop: s(10),
                 }}
               >
                 Issued through Duffel and IATA-licensed partners. Check in at the airline counter like anyone else. Refunds go back to the same wallet, in stablecoins.
               </p>
-              <ul style={{ marginTop: 20, fontSize: 13.5, color: COLOR.navySoft, fontFamily: BODY_STACK }}>
+              <ul style={{ marginTop: s(20), fontSize: s(13.5), color: COLOR.navySoft, fontFamily: BODY_STACK }}>
                 {[
                   "IATA-issued PNR within 90 seconds",
                   "24/7 human support — Telegram or email",
@@ -2183,7 +2189,7 @@ export default function HomePage() {
                   <li
                     key={line}
                     className="flex items-center"
-                    style={{ gap: 8, marginTop: 8 }}
+                    style={{ gap: 8, marginTop: s(8) }}
                   >
                     <GreenCheckIcon />
                     {line}
@@ -2196,16 +2202,16 @@ export default function HomePage() {
       </section>
 
       {/* ─────────── DESTINATIONS ─────────── */}
-      <section style={{ padding: "96px 0" }}>
+      <section style={{ padding: `${sr(96)} 0` }}>
         <div className="mx-auto w-full xl:max-w-screen-xl 2xl:max-w-[1440px] min-[1920px]:max-w-[1680px] min-[2560px]:max-w-[2200px]" style={{ padding: "0 32px" }}>
           <div
             className="flex items-end justify-between flex-wrap"
-            style={{ gap: 24, marginBottom: 40 }}
+            style={{ gap: s(24), marginBottom: s(40) }}
           >
             <div>
               <div
                 style={{
-                  fontSize: 12,
+                  fontSize: s(12),
                   textTransform: "uppercase",
                   letterSpacing: "0.18em",
                   color: COLOR.trvlBlue,
@@ -2216,20 +2222,20 @@ export default function HomePage() {
                 Popular right now
               </div>
               <h2
-                className="text-[40px] sm:text-[52px]"
+                className="text-[40px] sm:text-[52px] 2xl:text-[60px] min-[1920px]:text-[68px] min-[2560px]:text-[83px]"
                 style={{
                   fontFamily: FONT_STACK,
                   fontWeight: 800,
                   letterSpacing: "-0.025em",
                   lineHeight: 1.0,
                   color: COLOR.navy,
-                  marginTop: 12,
+                  marginTop: s(12),
                 }}
               >
                 Where everyone&apos;s flying this month.
               </h2>
             </div>
-            <div className="flex items-center" style={{ gap: 8, fontSize: 13, color: COLOR.muted }}>
+            <div className="flex items-center" style={{ gap: 8, fontSize: s(13), color: COLOR.muted }}>
               <span style={{ fontFamily: BODY_STACK }}>Showing {DESTINATIONS.length} of 142</span>
               <a
                 href="#"
@@ -2247,7 +2253,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4" style={{ gap: 16 }}>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4" style={{ gap: s(16) }}>
             {DESTINATIONS.map((d, i) => (
               <button
                 key={`${d.origin}-${d.destination}-${i}`}
@@ -2292,7 +2298,7 @@ export default function HomePage() {
                       top: 16,
                       left: 16,
                       right: 16,
-                      fontSize: 11,
+                      fontSize: s(11),
                       letterSpacing: "0.14em",
                       textTransform: "uppercase",
                       color: "rgba(255, 255, 255, 0.92)",
@@ -2306,14 +2312,14 @@ export default function HomePage() {
                 </div>
                 <div
                   className="flex items-end justify-between"
-                  style={{ padding: "14px 16px" }}
+                  style={{ padding: sp(14, 16) }}
                 >
                   <div>
                     <div
                       style={{
                         fontFamily: FONT_STACK,
                         fontWeight: 700,
-                        fontSize: 18,
+                        fontSize: s(18),
                         letterSpacing: "-0.01em",
                         color: COLOR.navy,
                       }}
@@ -2323,7 +2329,7 @@ export default function HomePage() {
                     <div
                       style={{
                         fontFamily: BODY_STACK,
-                        fontSize: 12.5,
+                        fontSize: s(12.5),
                         color: COLOR.mutedSoft,
                       }}
                     >
@@ -2333,7 +2339,7 @@ export default function HomePage() {
                   <div className="text-right">
                     <div
                       style={{
-                        fontSize: 10.5,
+                        fontSize: s(10.5),
                         textTransform: "uppercase",
                         letterSpacing: "0.12em",
                         color: COLOR.mutedSoft,
@@ -2345,7 +2351,7 @@ export default function HomePage() {
                     <div
                       style={{
                         fontFamily: MONO_STACK,
-                        fontSize: 15,
+                        fontSize: s(15),
                         fontWeight: 600,
                         color: COLOR.navy,
                       }}
@@ -2367,37 +2373,37 @@ export default function HomePage() {
           background: COLOR.surface2,
           borderTop: `1px solid ${COLOR.surfaceLine}`,
           borderBottom: `1px solid ${COLOR.surfaceLine}`,
-          padding: "112px 0",
+          padding: `${sr(112)} 0`,
         }}
       >
         <div className="mx-auto w-full xl:max-w-screen-xl 2xl:max-w-[1440px] min-[1920px]:max-w-[1680px] min-[2560px]:max-w-[2200px]" style={{ padding: "0 32px" }}>
           <div
             className="grid grid-cols-1 lg:grid-cols-12"
-            style={{ gap: 64 }}
+            style={{ gap: s(64) }}
           >
             <div className="lg:col-span-4">
               <div className="lg:sticky lg:top-24">
                 <div
                   style={{
                     fontFamily: MONO_STACK,
-                    fontSize: 11,
+                    fontSize: s(11),
                     letterSpacing: "0.14em",
                     color: COLOR.trvlBlue,
                     textTransform: "uppercase",
-                    marginBottom: 16,
+                    marginBottom: s(16),
                   }}
                 >
                   § 04 · Questions
                 </div>
                 <h2
-                  className="text-[40px] lg:text-[52px]"
+                  className="text-[40px] lg:text-[52px] 2xl:text-[60px] min-[1920px]:text-[68px] min-[2560px]:text-[83px]"
                   style={{
                     fontFamily: FONT_STACK,
                     fontWeight: 800,
                     letterSpacing: "-0.035em",
                     lineHeight: 1,
                     color: COLOR.navy,
-                    marginBottom: 24,
+                    marginBottom: s(24),
                   }}
                 >
                   The questions everyone sensibly asks first.
@@ -2405,7 +2411,7 @@ export default function HomePage() {
                 <p
                   style={{
                     fontFamily: BODY_STACK,
-                    fontSize: 15,
+                    fontSize: s(15),
                     color: COLOR.navyTint,
                     maxWidth: 360,
                     lineHeight: 1.55,
@@ -2438,8 +2444,8 @@ export default function HomePage() {
                         aria-expanded={open}
                         className="w-full text-left flex items-start"
                         style={{
-                          gap: 24,
-                          padding: "24px 0",
+                          gap: s(24),
+                          padding: `${s(24)} 0`,
                           background: "transparent",
                           cursor: "pointer",
                         }}
@@ -2447,7 +2453,7 @@ export default function HomePage() {
                         <span
                           style={{
                             fontFamily: MONO_STACK,
-                            fontSize: 12,
+                            fontSize: s(12),
                             color: COLOR.navyTint,
                             paddingTop: 4,
                             fontVariantNumeric: "tabular-nums",
@@ -2460,7 +2466,7 @@ export default function HomePage() {
                           style={{
                             fontFamily: FONT_STACK,
                             fontWeight: 700,
-                            fontSize: 19,
+                            fontSize: s(19),
                             letterSpacing: "-0.025em",
                             color: COLOR.navy,
                             lineHeight: 1.35,
@@ -2486,10 +2492,10 @@ export default function HomePage() {
                         <div
                           style={{
                             paddingLeft: 52,
-                            paddingBottom: 24,
+                            paddingBottom: s(24),
                             marginTop: -4,
                             fontFamily: BODY_STACK,
-                            fontSize: 15,
+                            fontSize: s(15),
                             color: COLOR.navyTint,
                             lineHeight: 1.65,
                             maxWidth: 640,
@@ -2508,7 +2514,7 @@ export default function HomePage() {
       </section>
 
       {/* ─────────── FINAL CTA ─────────── */}
-      <section style={{ padding: "112px 0" }}>
+      <section style={{ padding: `${sr(112)} 0` }}>
         <div className="mx-auto w-full xl:max-w-screen-xl 2xl:max-w-[1440px] min-[1920px]:max-w-[1680px] min-[2560px]:max-w-[2200px]" style={{ padding: "0 32px" }}>
           <div
             className="relative"
@@ -2517,7 +2523,7 @@ export default function HomePage() {
               overflow: "hidden",
               background: COLOR.navy,
               color: "#FFFFFF",
-              padding: "80px 64px",
+              padding: sp(80, 64),
             }}
           >
             <div
@@ -2564,12 +2570,12 @@ export default function HomePage() {
 
             <div
               className="relative grid lg:grid-cols-12"
-              style={{ gap: 40, alignItems: "end" }}
+              style={{ gap: s(40), alignItems: "end" }}
             >
               <div className="lg:col-span-8">
                 <div
                   style={{
-                    fontSize: 12,
+                    fontSize: s(12),
                     letterSpacing: "0.18em",
                     textTransform: "uppercase",
                     color: COLOR.trvlBlueLight,
@@ -2580,13 +2586,13 @@ export default function HomePage() {
                   Ready when you are
                 </div>
                 <h2
-                  className="text-[44px] sm:text-[64px]"
+                  className="text-[44px] sm:text-[64px] 2xl:text-[74px] min-[1920px]:text-[83px] min-[2560px]:text-[102px]"
                   style={{
                     fontFamily: FONT_STACK,
                     fontWeight: 800,
                     letterSpacing: "-0.03em",
                     lineHeight: 0.98,
-                    marginTop: 12,
+                    marginTop: s(12),
                   }}
                 >
                   Pick a destination.
@@ -2608,9 +2614,9 @@ export default function HomePage() {
                 </h2>
                 <p
                   style={{
-                    marginTop: 24,
+                    marginTop: s(24),
                     maxWidth: 520,
-                    fontSize: 16,
+                    fontSize: s(16),
                     lineHeight: 1.6,
                     color: "rgba(255, 255, 255, 0.75)",
                     fontFamily: BODY_STACK,
@@ -2621,19 +2627,19 @@ export default function HomePage() {
               </div>
               <div
                 className="lg:col-span-4 flex flex-col"
-                style={{ gap: 12 }}
+                style={{ gap: s(12) }}
               >
                 <a
                   href="#search"
                   className="inline-flex items-center justify-center"
                   style={{
                     gap: 8,
-                    height: 48,
-                    padding: "0 20px",
+                    height: s(48),
+                    padding: `0 ${s(20)}`,
                     borderRadius: 12,
                     background: COLOR.trvlBlue,
                     color: "#FFFFFF",
-                    fontSize: 15,
+                    fontSize: s(15),
                     fontWeight: 600,
                     fontFamily: BODY_STACK,
                     boxShadow: TRVL_POP_SHADOW,
@@ -2647,13 +2653,13 @@ export default function HomePage() {
                   className="inline-flex items-center justify-center"
                   style={{
                     gap: 8,
-                    height: 48,
-                    padding: "0 20px",
+                    height: s(48),
+                    padding: `0 ${s(20)}`,
                     borderRadius: 12,
                     border: "1px solid rgba(255, 255, 255, 0.2)",
                     background: "rgba(255, 255, 255, 0.05)",
                     color: "#FFFFFF",
-                    fontSize: 15,
+                    fontSize: s(15),
                     fontWeight: 500,
                     fontFamily: BODY_STACK,
                   }}
@@ -2665,7 +2671,7 @@ export default function HomePage() {
                   style={{
                     marginTop: 4,
                     gap: 8,
-                    fontSize: 12.5,
+                    fontSize: s(12.5),
                     color: "rgba(255, 255, 255, 0.65)",
                     fontFamily: BODY_STACK,
                   }}
@@ -2684,10 +2690,10 @@ export default function HomePage() {
 
       {/* ─────────── FOOTER ─────────── */}
       <footer style={{ background: COLOR.navy, color: "#FFFFFF" }}>
-        <div className="mx-auto w-full xl:max-w-screen-xl 2xl:max-w-[1440px] min-[1920px]:max-w-[1680px] min-[2560px]:max-w-[2200px]" style={{ padding: "80px 32px" }}>
-          <div className="grid grid-cols-2 md:grid-cols-12" style={{ gap: 40 }}>
+        <div className="mx-auto w-full xl:max-w-screen-xl 2xl:max-w-[1440px] min-[1920px]:max-w-[1680px] min-[2560px]:max-w-[2200px]" style={{ padding: `${sr(80)} 32px` }}>
+          <div className="grid grid-cols-2 md:grid-cols-12" style={{ gap: s(40) }}>
             <div className="col-span-2 md:col-span-5">
-              <div className="flex items-center" style={{ gap: 10, marginBottom: 20 }}>
+              <div className="flex items-center" style={{ gap: 10, marginBottom: s(20) }}>
                 <span
                   aria-hidden="true"
                   className="grid place-items-center"
@@ -2707,7 +2713,7 @@ export default function HomePage() {
                   style={{
                     fontFamily: FONT_STACK,
                     fontWeight: 700,
-                    fontSize: 18,
+                    fontSize: s(18),
                     letterSpacing: "-0.025em",
                   }}
                 >
@@ -2716,7 +2722,7 @@ export default function HomePage() {
               </div>
               <p
                 style={{
-                  fontSize: 15,
+                  fontSize: s(15),
                   color: "rgba(255, 255, 255, 0.65)",
                   maxWidth: 380,
                   lineHeight: 1.6,
@@ -2728,16 +2734,16 @@ export default function HomePage() {
               <div
                 className="inline-flex items-center"
                 style={{
-                  marginTop: 32,
+                  marginTop: s(32),
                   gap: 8,
                   fontFamily: MONO_STACK,
-                  fontSize: 11,
+                  fontSize: s(11),
                   letterSpacing: "0.14em",
                   color: COLOR.usdtGreenLight,
                   background: "rgba(15, 169, 88, 0.15)",
                   border: "1px solid rgba(15, 169, 88, 0.3)",
                   borderRadius: 999,
-                  padding: "6px 12px",
+                  padding: sp(6, 12),
                 }}
               >
                 <span
@@ -2769,24 +2775,24 @@ export default function HomePage() {
                 <div
                   style={{
                     fontFamily: MONO_STACK,
-                    fontSize: 11,
+                    fontSize: s(11),
                     letterSpacing: "0.18em",
                     color: "rgba(255, 255, 255, 0.4)",
                     textTransform: "uppercase",
-                    marginBottom: 16,
+                    marginBottom: s(16),
                   }}
                 >
                   {col.heading}
                 </div>
                 <ul
                   style={{
-                    fontSize: 14,
+                    fontSize: s(14),
                     color: "rgba(255, 255, 255, 0.8)",
                     fontFamily: BODY_STACK,
                   }}
                 >
                   {col.items.map((line) => (
-                    <li key={line} style={{ marginTop: 10, listStyle: "none" }}>
+                    <li key={line} style={{ marginTop: s(10), listStyle: "none" }}>
                       <a href="#" style={{ color: "inherit" }}>
                         {line}
                       </a>
@@ -2800,14 +2806,14 @@ export default function HomePage() {
           <div
             className="flex flex-wrap items-center justify-between"
             style={{
-              marginTop: 64,
-              paddingTop: 32,
+              marginTop: s(64),
+              paddingTop: s(32),
               borderTop: "1px solid rgba(255, 255, 255, 0.1)",
-              fontSize: 12,
+              fontSize: s(12),
               fontFamily: MONO_STACK,
               color: "rgba(255, 255, 255, 0.45)",
               fontVariantNumeric: "tabular-nums",
-              gap: 16,
+              gap: s(16),
             }}
           >
             <div>© 2026 TRVLscan Ltd · Companies House 14829203</div>
@@ -2822,8 +2828,13 @@ export default function HomePage() {
         </div>
       </footer>
 
-      {/* PULSE ANIMATION */}
+      {/* PULSE ANIMATION + FLUID SCALE TIERS */}
       <style jsx global>{`
+        :root { --s: 1; --s-rhythm: 1; }
+        @media (min-width: 1536px) { :root { --s: 1.15; --s-rhythm: 1.15; } }
+        @media (min-width: 1920px) { :root { --s: 1.30; --s-rhythm: 1.30; } }
+        @media (min-width: 2560px) { :root { --s: 1.60; --s-rhythm: 1.30; } }
+
         @keyframes trvl-pulse {
           0% { transform: scale(0.7); opacity: 0.6; }
           100% { transform: scale(1.6); opacity: 0; }
