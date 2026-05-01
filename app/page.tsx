@@ -764,7 +764,7 @@ export default function HomePage() {
     <main style={{ fontFamily: FONT_STACK, background: COLOR.surface, minHeight: "100vh", color: COLOR.navy }}>
       {/* ─────────── NAV ─────────── */}
       <header className="relative z-30">
-        <div className="mx-auto w-full xl:max-w-screen-xl 2xl:max-w-[1440px] min-[1920px]:max-w-[1680px]" style={{ padding: "24px 32px 0" }}>
+        <div className="mx-auto w-full xl:max-w-screen-xl 2xl:max-w-[1440px] min-[1920px]:max-w-[1680px] min-[2560px]:max-w-[2200px]" style={{ padding: "24px 32px 0" }}>
           <nav
             className="flex items-center justify-between"
             style={{
@@ -840,7 +840,7 @@ export default function HomePage() {
           }}
         />
         <div
-          className="relative mx-auto w-full xl:max-w-screen-xl 2xl:max-w-[1440px] min-[1920px]:max-w-[1680px]"
+          className="relative mx-auto w-full xl:max-w-screen-xl 2xl:max-w-[1440px] min-[1920px]:max-w-[1680px] min-[2560px]:max-w-[2200px]"
           style={{ padding: "40px 32px 32px" }}
         >
           <div className="grid grid-cols-1 lg:grid-cols-12" style={{ gap: 48, alignItems: "start" }}>
@@ -1263,7 +1263,7 @@ export default function HomePage() {
 
       {/* ─────────── SEARCH FORM ─────────── */}
       <section id="search" className="relative">
-        <div className="mx-auto w-full xl:max-w-screen-xl 2xl:max-w-[1440px] min-[1920px]:max-w-[1680px]" style={{ padding: "0 32px" }}>
+        <div className="mx-auto w-full xl:max-w-screen-xl 2xl:max-w-[1440px] min-[1920px]:max-w-[1680px] min-[2560px]:max-w-[2200px]" style={{ padding: "0 32px" }}>
           {/* Trip-type + cabin-class pills (always visible) */}
           <div className="flex items-center" style={{ gap: 12, marginBottom: 12 }}>
             <div className="relative" ref={tripDropdownRef}>
@@ -1880,7 +1880,7 @@ export default function HomePage() {
 
       {/* ─────────── FEATURES ─────────── */}
       <section id="how" style={{ padding: "96px 0 32px" }}>
-        <div className="mx-auto w-full xl:max-w-screen-xl 2xl:max-w-[1440px] min-[1920px]:max-w-[1680px]" style={{ padding: "0 32px" }}>
+        <div className="mx-auto w-full xl:max-w-screen-xl 2xl:max-w-[1440px] min-[1920px]:max-w-[1680px] min-[2560px]:max-w-[2200px]" style={{ padding: "0 32px" }}>
           <div className="flex items-end justify-between flex-wrap" style={{ gap: 24 }}>
             <div style={{ maxWidth: 640 }}>
               <div
@@ -2197,7 +2197,7 @@ export default function HomePage() {
 
       {/* ─────────── DESTINATIONS ─────────── */}
       <section style={{ padding: "96px 0" }}>
-        <div className="mx-auto w-full xl:max-w-screen-xl 2xl:max-w-[1440px] min-[1920px]:max-w-[1680px]" style={{ padding: "0 32px" }}>
+        <div className="mx-auto w-full xl:max-w-screen-xl 2xl:max-w-[1440px] min-[1920px]:max-w-[1680px] min-[2560px]:max-w-[2200px]" style={{ padding: "0 32px" }}>
           <div
             className="flex items-end justify-between flex-wrap"
             style={{ gap: 24, marginBottom: 40 }}
@@ -2370,7 +2370,7 @@ export default function HomePage() {
           padding: "112px 0",
         }}
       >
-        <div className="mx-auto w-full xl:max-w-screen-xl 2xl:max-w-[1440px] min-[1920px]:max-w-[1680px]" style={{ padding: "0 32px" }}>
+        <div className="mx-auto w-full xl:max-w-screen-xl 2xl:max-w-[1440px] min-[1920px]:max-w-[1680px] min-[2560px]:max-w-[2200px]" style={{ padding: "0 32px" }}>
           <div
             className="grid grid-cols-1 lg:grid-cols-12"
             style={{ gap: 64 }}
@@ -2509,7 +2509,7 @@ export default function HomePage() {
 
       {/* ─────────── FINAL CTA ─────────── */}
       <section style={{ padding: "112px 0" }}>
-        <div className="mx-auto w-full xl:max-w-screen-xl 2xl:max-w-[1440px] min-[1920px]:max-w-[1680px]" style={{ padding: "0 32px" }}>
+        <div className="mx-auto w-full xl:max-w-screen-xl 2xl:max-w-[1440px] min-[1920px]:max-w-[1680px] min-[2560px]:max-w-[2200px]" style={{ padding: "0 32px" }}>
           <div
             className="relative"
             style={{
@@ -2684,7 +2684,7 @@ export default function HomePage() {
 
       {/* ─────────── FOOTER ─────────── */}
       <footer style={{ background: COLOR.navy, color: "#FFFFFF" }}>
-        <div className="mx-auto w-full xl:max-w-screen-xl 2xl:max-w-[1440px] min-[1920px]:max-w-[1680px]" style={{ padding: "80px 32px" }}>
+        <div className="mx-auto w-full xl:max-w-screen-xl 2xl:max-w-[1440px] min-[1920px]:max-w-[1680px] min-[2560px]:max-w-[2200px]" style={{ padding: "80px 32px" }}>
           <div className="grid grid-cols-2 md:grid-cols-12" style={{ gap: 40 }}>
             <div className="col-span-2 md:col-span-5">
               <div className="flex items-center" style={{ gap: 10, marginBottom: 20 }}>
