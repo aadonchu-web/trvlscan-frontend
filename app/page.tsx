@@ -736,6 +736,8 @@ export default function HomePage() {
         minHeight: wide ? 64 : "100%",
         minWidth: 140,
         cursor: "pointer",
+        borderTopRightRadius: 16,
+        borderBottomRightRadius: 16,
       }}
       onMouseEnter={(e) => (e.currentTarget.style.background = COLOR.trvlBlueDark)}
       onMouseLeave={(e) => (e.currentTarget.style.background = COLOR.trvlBlue)}
@@ -1256,28 +1258,6 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Index footer ribbon */}
-          <div
-            className="flex flex-wrap items-center"
-            style={{
-              gap: "8px 24px",
-              marginTop: 40,
-              fontSize: 12,
-              fontFamily: MONO_STACK,
-              color: COLOR.navyTint,
-            }}
-          >
-            <span className="flex items-center" style={{ gap: 8 }}>
-              <span
-                aria-hidden="true"
-                style={{ width: 6, height: 6, borderRadius: 999, background: COLOR.usdtGreen }}
-              />
-              INDEX UPDATED 00:14 AGO
-            </span>
-            <span>· 1,284 ROUTES INDEXED TODAY</span>
-            <span>· USDT/GBP MID 1.2742</span>
-            <span>· 0 OUTAGES PAST 24H</span>
-          </div>
         </div>
       </section>
 
@@ -1401,7 +1381,6 @@ export default function HomePage() {
                 borderRadius: 16,
                 boxShadow: NAVY_SHADOW_CARD,
                 border: `1px solid ${COLOR.surfaceLine}`,
-                overflow: "hidden",
               }}
             >
               <div className="flex flex-wrap md:flex-nowrap" style={{ alignItems: "stretch" }}>
@@ -1487,7 +1466,6 @@ export default function HomePage() {
                 borderRadius: 16,
                 boxShadow: NAVY_SHADOW_CARD,
                 border: `1px solid ${COLOR.surfaceLine}`,
-                overflow: "hidden",
               }}
             >
               <div className="flex flex-wrap md:flex-nowrap" style={{ alignItems: "stretch" }}>
@@ -1591,7 +1569,6 @@ export default function HomePage() {
                 borderRadius: 16,
                 boxShadow: NAVY_SHADOW_CARD,
                 border: `1px solid ${COLOR.surfaceLine}`,
-                overflow: "hidden",
               }}
             >
               {multiCityRows.map((leg, idx) => (
