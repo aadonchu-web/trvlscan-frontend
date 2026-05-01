@@ -1467,11 +1467,11 @@ export default function HomePage() {
                   </button>
                 </div>
                 <VDiv desktopOnly />
-                <div style={{ width: "100%" }} className="md:w-[210px]">
+                <div className="w-full md:w-[210px]">
                   {renderDateChip("Depart", date, setDate)}
                 </div>
                 <VDiv desktopOnly />
-                <div style={{ width: "100%" }} className="md:w-[170px]">
+                <div className="w-full md:w-[170px]">
                   {renderPassengersChip()}
                 </div>
                 <SearchSubmit />
@@ -1553,15 +1553,15 @@ export default function HomePage() {
                   </button>
                 </div>
                 <VDiv desktopOnly />
-                <div style={{ width: "100%" }} className="md:w-[150px]">
+                <div className="w-full md:w-[150px]">
                   {renderDateChip("Depart", date, setDate)}
                 </div>
                 <VDiv desktopOnly />
-                <div style={{ width: "100%" }} className="md:w-[150px]">
+                <div className="w-full md:w-[150px]">
                   {renderDateChip("Return", returnDate, setReturnDate)}
                 </div>
                 <VDiv desktopOnly />
-                <div style={{ width: "100%" }} className="md:w-[160px]">
+                <div className="w-full md:w-[160px]">
                   {renderPassengersChip()}
                 </div>
                 <SearchSubmit />
@@ -1763,8 +1763,8 @@ export default function HomePage() {
                       </button>
                     </div>
                     <VDiv desktopOnly />
-                    <div className="relative" style={{ width: "100%", padding: "14px 20px" }}>
-                      <div className="md:w-[280px]" style={{ width: "100%" }}>
+                    <div className="relative w-full md:w-[280px]" style={{ padding: "14px 20px" }}>
+                      <div className="w-full">
                         <div style={SKY_LABEL_STYLE}>Depart</div>
                         <div
                           className="text-[19px] font-semibold pointer-events-none mt-1 truncate"
